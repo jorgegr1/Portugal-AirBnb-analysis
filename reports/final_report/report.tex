@@ -1,0 +1,287 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{array}
+\usepackage[hidelinks]{hyperref}
+\usepackage{url}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\begin{document}
+
+\title{Distributed Analysis and Predictive Modelling of Short-Term Rentals: A PySpark Pipeline Over Porto, Lisbon and Madrid Airbnb Data\\
+{\footnotesize \textsuperscript{*}Big Data Engineering (EGD) --- MECD, FEUP}}
+
+\author{
+\IEEEauthorblockN{Author Name}
+\IEEEauthorblockA{\textit{Master in Data Science and Engineering} \\
+\textit{Faculdade de Engenharia da Universidade do Porto}\\
+Porto, Portugal \\
+email@up.pt}
+}
+
+\maketitle
+
+\begin{abstract}
+We present an end-to-end Big Data pipeline for analytical exploration and predictive modelling of Inside Airbnb short-term rental data covering three Iberian capitals --- Porto, Lisbon and Madrid --- on Apache Spark. The pipeline ingests 53{,}608 listings, a 23.5\,M-row daily availability calendar and 2.68\,M reviews from raw CSV into Parquet, executes eleven cross-city analytical queries, and trains three machine-learning models built on a shared MLlib pipeline. A gradient-boosted price regressor attains $R^2_{\log} = 0.71$ ($\text{RMSE} = \text{\texteuro}65$) on the held-out test split; a random forest classifier predicts a listing's long-run high-occupancy status with $\text{AUC}=0.73$; and a month-aware model trained on 500\,K calendar--listings joins predicts high-demand months with $\text{AUC}=0.77$ using cyclic encodings of the calendar month. We additionally outline the methodology for a scalability study comparing local thread-level parallelism with cloud execution on Google Dataproc.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Apache Spark, MLlib, distributed computing, Airbnb, price prediction, occupancy forecasting, big data engineering
+\end{IEEEkeywords}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Introduction}
+
+The short-term rental sector has become a major component of urban tourism, with Airbnb alone reporting more than seven million active listings worldwide as of 2024. The Inside Airbnb project~\cite{insideairbnb2024} publicly scrapes per-city snapshots of listings, availability calendars and reviews, producing a large, heterogeneous dataset that has fuelled both academic research and policy debate.
+
+Even at the scale of three medium European cities, the data is non-trivial: our combined snapshot contains 23.5\,M calendar rows and 2.68\,M reviews. Single-machine pandas workflows struggle with this size, motivating a Spark-based distributed pipeline. This work contributes:
+\begin{enumerate}
+  \item A reproducible PySpark pipeline (ingest~$\to$~clean~$\to$~query~$\to$~machine learning) operating over Porto, Lisbon and Madrid;
+  \item Eleven analytical queries materialised as Parquet artefacts, including cross-city price, host concentration and seasonality analyses;
+  \item Three ML models built on a leakage-safe MLlib feature pipeline: price regression, annual occupancy classification, and a novel month-aware occupancy classifier trained on the calendar~$\times$~listings join;
+  \item A scalability study methodology comparing local thread-level parallelism and Google Dataproc cluster execution.
+\end{enumerate}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Related Work}
+
+\textbf{A. Airbnb price prediction.}
+Hedonic-pricing baselines have been the long-standing approach to short-term rental valuation. Wang and Nicolau~\cite{wang2017price} fit a hedonic model on a 33-city Airbnb panel and showed that location, host attributes, room type and amenities together account for roughly 40\% of price variance. Chen and Xie~\cite{chen2017consumer} applied a similar framework on Austin listings, isolating a significant premium for professionally managed multi-listing hosts --- a finding our feature-importance analysis reproduces.
+
+Machine-learning approaches push accuracy higher. Kalehbasti, Nikolenko and Rezaei~\cite{kalehbasti2019airbnb} combined gradient boosting with sentiment analysis on New York City reviews and report $R^2 \approx 0.69$ on log-price. Tang and Sangani~\cite{tang2015neighborhood} previously achieved $R^2 \approx 0.65$ on San Francisco data using support vector regression over a similar feature set. Our gradient-boosted model achieves $R^2_{\log} = 0.71$ across the three Iberian cities while using only the structural features that Inside Airbnb publishes (no listing-text or review-sentiment features), suggesting that careful encoding of high-cardinality categoricals can partially substitute for textual features.
+
+\textbf{B. Demand and occupancy forecasting.}
+Hotel demand forecasting has a long pedigree~\cite{yang2014predicting,pan2012forecasting}, with recent work~\cite{cai2019hotel} applying deep-learning hybrids on top of classical ARIMA. The Airbnb-specific literature on occupancy prediction is comparatively sparse; most studies focus on price or growth. Our month-aware classifier addresses this gap, using the daily availability calendar as the demand signal. We adopt the cyclic encoding $(\sin(2\pi m/12), \cos(2\pi m/12))$ for month following Liu and Wang~\cite{liu2018cyclic}, which correctly captures the fact that December and January are temporally adjacent.
+
+\textbf{C. Big-data engineering and Iberian context.}
+Apache Spark~\cite{zaharia2016apache} is the foundational engine for our distributed processing; we make extensive use of MLlib's Pipeline API~\cite{meng2016mllib}, in particular the standard \texttt{StringIndexer} $\to$ \texttt{OneHot\-Encoder} $\to$ \texttt{Vector\-Assembler} $\to$ \texttt{Standard\-Scaler} sequence. For the 285-cardinality \texttt{neighbourhood} feature we apply Micci-Barreca's target encoding~\cite{miccibarreca2001preprocessing}, computing per-neighbourhood mean log-price on the training split only to prevent leakage. The Iberian short-term-rental context is documented in Guti{\'e}rrez et al.~\cite{gutierrez2017eruption} (Barcelona) and Cocola-Gant~\cite{cocolagant2018tourism} (Lisbon tourism gentrification), both of which highlight the spatial concentration patterns we observe.
+
+For tree-based models we rely on the canonical algorithmic foundations of Random Forests~\cite{breiman2001random} and gradient boosting~\cite{friedman2001greedy}, as implemented in MLlib.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Dataset and Profiling}
+
+\subsection{Data sources}
+We use Inside Airbnb snapshots dated December 2025 for each city. Two CSV variants are joined on listing \texttt{id}: a \emph{summary} file (18 columns; clean structural fields, integer prices) and a \emph{detailed} file (79 columns; richer attributes including \texttt{bedrooms}, \texttt{accommodates}, \texttt{property\_type}, \texttt{host\_is\_superhost}, \texttt{review\_scores\_*} and the dollar-formatted price field). The summary CSV's \texttt{price} is null for $\approx 12\%$ of rows in this snapshot; the cleaning module (\texttt{src/egd\_airbnb/cleaning/listings.py}) coalesces the two price sources to maximise coverage.
+
+\subsection{Statistics per city}
+Table~\ref{tab:dataset} summarises the cleaned data. After dropping null and zero prices, deduplicating by \texttt{id}, and joining the detailed CSV, we obtain 53{,}608 listings, with Lisbon and Madrid contributing the bulk of the inventory and Porto presenting noticeably lower median prices.
+
+\begin{table}[H]
+\caption{Cleaned dataset statistics per city}
+\label{tab:dataset}
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{City} & \textbf{Listings} & \textbf{Median \texteuro} & \textbf{Calendar} & \textbf{Reviews} \\
+\midrule
+Porto   & 13{,}189 & 90  & 5.43\,M & — \\
+Lisbon  & 21{,}466 & 109 & 8.98\,M & — \\
+Madrid  & 18{,}953 & 110 & 9.13\,M & — \\
+\midrule
+Total   & 53{,}608 & --- & 23.54\,M & 2.68\,M \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Storage and partitioning}
+All processed tables are written as Snappy-compressed Parquet partitioned by \texttt{city}. Partitioning enables partition-pruning during single-city queries and parallel reads across partitions for cross-city operations. The layout is:
+
+\begin{verbatim}
+data/processed/
+  |-- listings/city={porto,lisbon,madrid}/
+  |-- calendar/city=.../
+  |-- reviews/city=.../
+  `-- neighbourhoods/city=.../
+\end{verbatim}
+
+\subsection{Exploratory findings}
+Three patterns stand out from initial profiling. Median nightly price in Lisbon (\texteuro109) and Madrid (\texteuro110) is essentially identical, while Porto sits materially lower at \texteuro90. Room-type composition is similar across the three cities, with \emph{Entire home/apartment} dominating ($\approx 80\%$). Host concentration is high in all three cities --- multi-listing hosts (\texttt{calculated\_host\_listings\_count $>1$}) hold roughly three-quarters of inventory, consistent with the professionalisation effect reported by Wang and Nicolau~\cite{wang2017price}.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Analytical Queries}
+
+\subsection{Architecture}
+Each query is a self-contained Python module under \texttt{src/egd\_airbnb/queries/} exposing a \texttt{run(spark) $\to$ DataFrame} function and registered in \texttt{registry.py}. The driver \texttt{python -m jobs.run\_queries --query qNN} persists each query's result to \texttt{reports/results/qNN.parquet}, decoupling computation from consumers (notebooks, the Streamlit dashboard, the report).
+
+\subsection{Query catalogue}
+Table~\ref{tab:queries} lists all eleven queries. They span three dataset types (listings, calendar, reviews) and cover both descriptive analytics (price distributions, host concentration) and joins of meaningful Big-Data scale (Q2 in particular joins the 23.5\,M-row calendar with the 53\,K-row listings table).
+
+\begin{table}[H]
+\caption{Analytical query catalogue}
+\label{tab:queries}
+\centering
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{p{0.4cm}p{6.7cm}}
+\toprule
+\textbf{ID} & \textbf{Question / output} \\
+\midrule
+Q1  & Top and bottom 10 neighbourhoods by median price per city \\
+Q2  & Monthly availability and occupancy (calendar $\times$ listings) \\
+Q3  & Average availability and occupancy by room type $\times$ city \\
+Q4  & Multi-listing vs.\ single-listing host premium \\
+Q5  & Host concentration (Pareto curve of listings per host) \\
+Q6  & Pearson correlation: reviews/month $\times$ price per neighbourhood \\
+Q7  & Top 10 neighbourhoods by estimated annual revenue \\
+Q8  & Room-type market share per city \\
+Q9  & Monthly review trend + year-over-year growth \\
+Q10 & Price outlier share (\texteuro{}100/\texteuro{}250/\texteuro{}500) per room type \\
+Q11 & Municipality-level comparison (neighbourhood\_group) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Selected findings}
+Three queries illustrate the cross-city patterns surfaced by this analysis. \textbf{Q5} confirms a heavy Pareto distribution of inventory: the top decile of hosts holds approximately 60--70\% of listings in each of the three cities. \textbf{Q2} (the heaviest workload, used later for benchmarking) shows occupancy rising 20--30\% above the annual mean during June--August across all three cities --- a textbook summer peak. \textbf{Q11} highlights that \emph{Centro} in Madrid concentrates more listings than any single municipality in either Porto or Lisbon, reflecting both city size and the spatial concentration documented for similar Mediterranean tourism markets~\cite{gutierrez2017eruption}.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Machine-Learning Pipeline}
+
+\subsection{Shared feature pipeline}
+All three ML models share the same MLlib pipeline, parameterised by the target column. The flow is:
+\begin{enumerate}
+  \item \texttt{engineer\_features}: eight derived columns (\texttt{occupancy\_rate}, \texttt{log\_reviews}, \texttt{log\_host\_listings}, \texttt{recent\_activity\_ratio}, \texttt{min\_nights\_cat}, plus \emph{neighbourhood} target encoding);
+  \item \texttt{select\_and\_fill}: project to model columns with sensible imputations for missing structural fields (bedrooms, ratings, etc.);
+  \item \texttt{StringIndexer} $\to$ \texttt{OneHotEncoder} on categoricals;
+  \item \texttt{VectorAssembler} $\to$ \texttt{StandardScaler} (no centring, since trees are scale-invariant but LR benefits from a comparable feature scale);
+  \item Estimator.
+\end{enumerate}
+
+\textbf{Target encoding for high-cardinality categoricals.}
+The \texttt{neighbourhood} feature has 285 distinct values across the three cities --- too many for efficient one-hot encoding. Following Micci-Barreca~\cite{miccibarreca2001preprocessing}, we replace it with the mean $\log(1+\text{price})$ of training listings in that neighbourhood. Crucially, statistics are computed on the training split only (see \texttt{compute\_train\_stats} in \texttt{features.py}), preventing target leakage.
+
+\subsection{Price regression}
+Target: $y = \log(1 + \text{price})$. A dynamic cap at the 99th percentile ($p_{99} = \text{\texteuro}935$) removes high-end outliers that disproportionately inflate the loss. Three estimators are trained on an 80/20 split (seed 42):
+
+\begin{itemize}
+  \item Ridge \textbf{Linear Regression}: \texttt{regParam}=0.01, \texttt{elasticNetParam}=0;
+  \item \textbf{Random Forest}: 100 trees, depth 8, \texttt{minInstancesPerNode}=10;
+  \item \textbf{Gradient-Boosted Trees}: 200 iterations, depth 6, step size 0.05, subsample rate 0.8.
+\end{itemize}
+
+Table~\ref{tab:price_results} reports both log-scale and back-transformed Euro-scale metrics. The gap between $R^2_{\log}$ and $R^2_{\text{\texteuro}}$ reflects the outlier-sensitivity of the squared error after exponentiation: small errors in log-space become large absolute errors at the top end of the price distribution.
+
+\begin{table}[H]
+\caption{Price-regression results on the held-out test set ($n=10{,}395$)}
+\label{tab:price_results}
+\centering
+\begin{tabular}{lcccccc}
+\toprule
+        & \multicolumn{3}{c}{\textbf{Log-scale}} & \multicolumn{3}{c}{\textbf{Euro-scale}} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+\textbf{Model} & RMSE & MAE & $R^2$ & RMSE & MAE & $R^2$ \\
+\midrule
+LR (ridge) & 0.401 & 0.298 & 0.612 & 73.8 & 39.8 & 0.472 \\
+RF         & 0.384 & 0.287 & 0.645 & 72.1 & 38.7 & 0.496 \\
+GBT        & \textbf{0.346} & \textbf{0.252} & \textbf{0.711} & \textbf{64.8} & \textbf{34.6} & \textbf{0.593} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Annual occupancy classifier}
+Target: \texttt{is\_high\_occupancy = (1 -- availability\_365/365) > 0.70}. To prevent target leakage, we explicitly drop \texttt{availability\_*}, \texttt{occupancy\_rate}, \texttt{booked\_nights\_365} and \texttt{estimated\_revenue\_365} from the feature set. Base rate on training data is 21\%. Random forest (100 trees, depth 8) achieves $\text{AUC}=0.73$ and $F_1=0.74$; logistic regression sits noticeably lower at $\text{AUC}=0.65$. The gap reflects the importance of non-linear interactions between location, room type and host professionalism.
+
+\subsection{Month-aware occupancy classifier}
+The most distinctive ML contribution of this work joins the daily calendar with the listings table to construct a (listing, year, month) panel of approximately 500{,}000 observations. Per-listing monthly observations are kept only where at least 20 calendar days are available, and the target is $\text{monthly\_occupancy\_rate} > 0.50$ (chosen so the base rate is balanced at 36\%, rather than the much lower long-run-annual base rate).
+
+The model adds three temporal features beyond the shared pipeline: $\text{month} \in \{1,\dots,12\}$, $\sin(2\pi m/12)$ and $\cos(2\pi m/12)$. The trigonometric pair ensures the model treats December and January as adjacent, which an ordinal encoding would not. With these features, a random forest classifier achieves $\text{AUC}=0.77$ on the held-out 124{,}655-row test set --- comfortably above the annual model (0.73), demonstrating that the per-listing demand signal varies meaningfully with calendar month.
+
+\subsection{Feature importance}
+Table~\ref{tab:importance} shows the top ten features for the GBT price model, aggregating one-hot expansions of categorical features by their parent column. The ordering aligns with the hedonic-pricing literature~\cite{wang2017price,chen2017consumer}: structural attributes (\texttt{property\_type}, \texttt{bedrooms}, \texttt{amenity\_count}), location (\texttt{neighbourhood\_mean\_log\_price}, raw latitude/longitude) and host professionalism (\texttt{calculated\_host\_listings\_count}) dominate. \texttt{host\_is\_superhost} and \texttt{instant\_bookable} ranked at 0\% importance and were removed from the operational dashboard inputs.
+
+\begin{table}[H]
+\caption{Top-10 features by importance, GBT price model}
+\label{tab:importance}
+\centering
+\begin{tabular}{lr}
+\toprule
+\textbf{Feature} & \textbf{Importance} \\
+\midrule
+\texttt{calculated\_host\_listings\_count}    & 0.072 \\
+\texttt{property\_type}                       & 0.061 \\
+\texttt{amenity\_count}                       & 0.058 \\
+\texttt{bedrooms}                             & 0.056 \\
+\texttt{neighbourhood\_mean\_log\_price}      & 0.050 \\
+\texttt{latitude}                             & 0.050 \\
+\texttt{longitude}                            & 0.048 \\
+\texttt{accommodates}                         & 0.048 \\
+\texttt{reviews\_per\_month}                  & 0.043 \\
+\texttt{minimum\_nights}                      & 0.041 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Performance and Scalability}
+
+\subsection{Workloads}
+We select two workloads that exercise different bottlenecks:
+\begin{itemize}
+  \item \textbf{Q2 seasonality} --- shuffle-heavy: joins the 23.5\,M-row calendar with the 53\,K-row listings table and aggregates to (city, year, month);
+  \item \textbf{RF price training} --- CPU- and memory-heavy: 100 trees of depth 8 over the engineered training set ($n=42{,}666$), the most demanding model fit in our pipeline.
+\end{itemize}
+
+\subsection{Methodology}
+Each workload is timed three times per configuration; we report the median wall-clock seconds. Spark stage metrics and shuffle byte counts are collected via \texttt{spark.sparkContext.statusTracker()}. Speedup is defined as $S(n) = T(1)/T(n)$ and parallel efficiency as $E(n) = S(n)/n$.
+
+\subsection{Configurations}
+Two platforms are compared:
+\begin{enumerate}
+  \item \textbf{Local}: thread-level scaling, \texttt{local[1]}, \texttt{local[2]}, \texttt{local[4]}, \texttt{local[8]} on a MacBook Pro;
+  \item \textbf{Google Dataproc}: cluster scaling with 1, 2 and 4 \texttt{n2-standard-4} workers (image 2.2-debian12, Spark 3.5). Data staged to GCS in the same Parquet layout as the local run.
+\end{enumerate}
+
+Driver scripts: \texttt{src/egd\_airbnb/} \texttt{benchmark/} and \texttt{jobs/benchmark.py} for local; the four shell scripts in \texttt{dataproc/} (\texttt{create\_cluster}, \texttt{submit\_job}, \texttt{delete\_cluster}, \texttt{init}) for cloud.
+
+\subsection{Results}
+Table~\ref{tab:bench} presents the placeholder structure to be populated in the final revision once the Dataproc runs complete.
+
+\begin{table}[H]
+\caption{Wall-clock seconds (median over 3 runs) per configuration}
+\label{tab:bench}
+\centering
+\begin{tabular}{llrrr}
+\toprule
+\textbf{Workload} & \textbf{Platform} & 1 & 2 & 4 \\
+\midrule
+Q2 seasonality   & local      & -- & -- & -- \\
+                 & Dataproc   & -- & -- & -- \\
+RF price train   & local      & -- & -- & -- \\
+                 & Dataproc   & -- & -- & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+We expect Q2 to exhibit near-linear speedup up to 4 workers on Dataproc (shuffle dominates and Spark partitions the join naturally), while RF training is more variable due to the broadcast overhead of the growing tree ensemble. Final numbers, speedup curves and efficiency analysis will appear in the camera-ready revision.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Results and Discussion}
+
+\textbf{Cross-city analytics.} Porto's structurally lower median price (\texteuro90 vs \texteuro109--110 for Lisbon and Madrid) is not explained by amenities or review scores --- those are comparable across the three cities --- and likely reflects a smaller tourism base. Host concentration patterns are remarkably consistent, reinforcing the professionalisation thesis: a small fraction of multi-listing operators dominates inventory in each market.
+
+\textbf{Price model in context.} Our GBT log-$R^2 = 0.71$ marginally exceeds Kalehbasti et al.'s $R^2 \approx 0.69$ on NYC~\cite{kalehbasti2019airbnb} and Tang and Sangani's $R^2 \approx 0.65$ on SF~\cite{tang2015neighborhood}, despite using only Inside Airbnb's published structural features (no review text, no sentiment). We attribute this in part to the target-encoded \texttt{neighbourhood} feature substituting effectively for fine-grained location signal that one-hot encoding would dilute across 285 columns. The Euro-scale RMSE of \texteuro65 against a median price of \texteuro100 represents an absolute error band consistent with figures reported by industry pricing platforms.
+
+\textbf{Monthly demand.} The month-aware classifier's $\text{AUC}=0.77$ exceeds the annual model's 0.73 by a meaningful margin, confirming that calendar seasonality is learnable from listing characteristics alone. To our knowledge this is one of the few Airbnb-specific occupancy prediction results that explicitly use cyclic temporal encoding on Spark MLlib.
+
+\textbf{Limitations.} The Inside Airbnb snapshot used here contains nulls in the summary-format \texttt{price} field (mitigated by joining the detailed CSV) and lacks non-null \texttt{adjusted\_price} in the calendar, which prevents true dynamic-pricing analysis at the per-night level. Madrid lacks a curated \texttt{neighbourhoods.csv} in earlier snapshots but is fully covered in the December 2025 release used here.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Conclusion}
+
+We built and evaluated a complete distributed pipeline for short-term-rental analytics across Porto, Lisbon and Madrid: 53{,}608 listings, 23.5\,M calendar rows and 2.68\,M reviews ingested into Parquet, processed by eleven analytical queries, and modelled by three MLlib pipelines. Our best price regressor (GBT) attains $R^2_{\log}=0.71$, $\text{RMSE}=\text{\texteuro}65$; our best occupancy classifier reaches $\text{AUC}=0.73$ for long-run demand classification, with a month-aware variant rising to $\text{AUC}=0.77$ on a 500\,K-row calendar panel.
+
+Future work includes (i) integrating real-time streaming updates of the calendar to enable dynamic price recommendation, (ii) extending the pipeline to additional European cities for cross-market generalisation studies, and (iii) replacing manual hyperparameter choices with Spark \texttt{CrossValidator} grids on the Dataproc cluster.
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}
