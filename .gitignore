@@ -1,0 +1,54 @@
+# Data (kept locally only)
+data/raw/
+data/interim/
+data/processed/
+models/
+*.parquet
+*.csv
+!notebooks/**/*.csv
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.python-version
+.pytest_cache
+.claude
+
+# Notebook checkpoints
+.ipynb_checkpoints/
+
+# Spark
+spark-warehouse/
+metastore_db/
+derby.log
+*.crc
+_SUCCESS
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Env
+.env
+.env.local
+
+# Reports — keep figures/results checked in but exclude tex build artefacts
+reports/final_report/*.aux
+reports/final_report/*.log
+reports/final_report/*.out
+reports/final_report/*.toc
+reports/final_report/*.pdf
+!reports/final_report/*_final.pdf
+
+# Streamlit
+.streamlit/secrets.toml
+

@@ -1,0 +1,52 @@
+"""Read raw CSVs under data/raw/<City>/ and write unified Parquet per dataset.
+
+Output layout:
+    data/interim/listings/city=porto/...parquet
+    data/interim/calendar/city=porto/...parquet
+    data/interim/reviews/city=porto/...parquet
+"""
+from __future__ import annotations
+
+from pathlib import Path
+
+from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql import functions as F
+
+from ..config import CITIES, DATASETS, INTERIM_DIR, RAW_DIR
+from ..utils.io import write_parquet
+
+
+def _read_city_csv(spark: SparkSession, city_key: str, dataset: str) -> DataFrame:
+    folder = CITIES[city_key]
+    path = RAW_DIR / folder / f"{dataset}.csv"
+    if not path.exists():
+        raise FileNotFoundError(f"Missing raw file: {path}")
+    return (
+        spark.read
+        .option("header", True)
+        .option("multiLine", True)         # listings.csv has embedded newlines in description fields
+        .option("escape", '"')
+        .option("quote", '"')
+        .option("inferSchema", False)      # types are handled in cleaning/
+        .csv(str(path))
+        .withColumn("city", F.lit(city_key))
+    )
+
+
+def unify_dataset(spark: SparkSession, dataset: str, cities: list[str]) -> Path:
+    dfs = [_read_city_csv(spark, c, dataset) for c in cities]
+    # Conform columns across cities (different snapshots may differ slightly).
+    common = sorted(set.intersection(*(set(df.columns) for df in dfs)))
+    unified = dfs[0].select(common)
+    for df in dfs[1:]:
+        unified = unified.unionByName(df.select(common))
+    out = INTERIM_DIR / dataset
+    write_parquet(unified, out, partition_by="city")
+    return out
+
+
+def unify_all(spark: SparkSession, cities: list[str] | None = None) -> None:
+    cities = cities or list(CITIES)
+    for ds in DATASETS:
+        out = unify_dataset(spark, ds, cities)
+        print(f"[unify] {ds} → {out}")
