@@ -3,9 +3,10 @@ from __future__ import annotations
 
 import argparse
 
-from egd_airbnb.cleaning import calendar as clean_calendar
-from egd_airbnb.cleaning import listings as clean_listings
-from egd_airbnb.cleaning import reviews  as clean_reviews
+from egd_airbnb.cleaning import calendar       as clean_calendar
+from egd_airbnb.cleaning import listings      as clean_listings
+from egd_airbnb.cleaning import neighbourhoods as clean_neighbourhoods
+from egd_airbnb.cleaning import reviews       as clean_reviews
 from egd_airbnb.config import CITIES, ensure_dirs
 from egd_airbnb.spark_session import get_spark
 
@@ -13,7 +14,7 @@ from egd_airbnb.spark_session import get_spark
 def main() -> None:
     p = argparse.ArgumentParser()
     p.add_argument("--cities", default=",".join(CITIES))
-    p.add_argument("--datasets", default="listings,calendar,reviews")
+    p.add_argument("--datasets", default="listings,calendar,reviews,neighbourhoods")
     args = p.parse_args()
 
     ensure_dirs()
@@ -29,6 +30,9 @@ def main() -> None:
         if "reviews" in wanted:
             clean_reviews.run(spark)
             print("[clean] reviews done")
+        if "neighbourhoods" in wanted:
+            clean_neighbourhoods.run(spark)
+            print("[clean] neighbourhoods done")
     finally:
         spark.stop()
 

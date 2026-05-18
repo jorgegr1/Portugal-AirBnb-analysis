@@ -1,4 +1,7 @@
-"""Q7 — Top 10 neighbourhoods by total estimated_revenue_l365d per city."""
+"""Q7 — Top 10 neighbourhoods by estimated annual revenue per city.
+
+estimated_revenue_365 = price × (365 − availability_365) is derived during cleaning.
+"""
 from __future__ import annotations
 
 from pyspark.sql import DataFrame, SparkSession, Window
@@ -12,11 +15,12 @@ def run(spark: SparkSession) -> DataFrame:
     listings = read_parquet(spark, PROCESSED_DIR / "listings")
     agg = (
         listings
-        .filter(F.col("estimated_revenue_l365d").isNotNull())
-        .groupBy("city", "neighbourhood_cleansed")
+        .filter(F.col("estimated_revenue_365").isNotNull())
+        .groupBy("city", "neighbourhood_group", "neighbourhood")
         .agg(
-            F.sum("estimated_revenue_l365d").alias("total_estimated_revenue"),
-            F.avg("estimated_revenue_l365d").alias("avg_estimated_revenue"),
+            F.sum("estimated_revenue_365").alias("total_estimated_revenue"),
+            F.avg("estimated_revenue_365").alias("avg_estimated_revenue"),
+            F.expr("percentile_approx(price, 0.5)").alias("median_price"),
             F.count("id").alias("n_listings"),
         )
     )

@@ -1,65 +1,70 @@
-"""Shared feature engineering for ML pipelines.
-
-Builds a list of PipelineStages that callers can extend with an estimator.
-"""
+"""Shared feature engineering for ML pipelines (summary format, 18-column schema)."""
 from __future__ import annotations
 
-from pyspark.ml import PipelineModel, Pipeline
-from pyspark.ml.feature import (
-    OneHotEncoder,
-    StandardScaler,
-    StringIndexer,
-    VectorAssembler,
-)
+from pyspark.ml import Pipeline, PipelineModel
+from pyspark.ml.feature import OneHotEncoder, StandardScaler, StringIndexer, VectorAssembler
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
 
+# Available numeric features in the summary-format listings.
 NUMERIC_FEATURES = [
-    "accommodates", "bedrooms", "beds", "minimum_nights",
-    "number_of_reviews", "number_of_reviews_ltm", "reviews_per_month",
-    "review_scores_rating", "calculated_host_listings_count",
-    "latitude", "longitude",
+    "minimum_nights",
+    "number_of_reviews",
+    "number_of_reviews_ltm",
+    "reviews_per_month",
+    "calculated_host_listings_count",
+    "availability_365",
+    "latitude",
+    "longitude",
 ]
 
+# Available categorical features.
 CATEGORICAL_FEATURES = [
-    "city", "room_type", "property_type",
-    "neighbourhood_cleansed", "host_is_superhost",
+    "city",
+    "room_type",
+    "neighbourhood_group",
+    "neighbourhood",
 ]
 
 
 def select_features(df: DataFrame, *, leak_cols: list[str] | None = None) -> DataFrame:
-    """Project to the columns we care about + sensible imputations."""
+    """Project to usable columns and apply sensible imputations."""
     leak = set(leak_cols or [])
-    kept = [c for c in NUMERIC_FEATURES + CATEGORICAL_FEATURES if c not in leak and c in df.columns]
-    out = df.select(*kept, *(c for c in df.columns if c not in kept and c in {"id", "price", "is_high_occupancy"}))
+    num = [c for c in NUMERIC_FEATURES if c not in leak and c in df.columns]
+    cat = [c for c in CATEGORICAL_FEATURES if c not in leak and c in df.columns]
 
-    # Median-ish imputation: 0 for review counts, conservative defaults elsewhere.
+    target_cols = {c for c in ("id", "price", "is_high_occupancy") if c in df.columns}
+    out = df.select(*num, *cat, *target_cols)
+
     fills = {
-        "bedrooms": 1, "beds": 1, "minimum_nights": 1,
-        "number_of_reviews": 0, "number_of_reviews_ltm": 0, "reviews_per_month": 0,
-        "review_scores_rating": 4.5, "calculated_host_listings_count": 1,
+        "minimum_nights": 1,
+        "number_of_reviews": 0,
+        "number_of_reviews_ltm": 0,
+        "reviews_per_month": 0.0,
+        "calculated_host_listings_count": 1,
     }
     for c, v in fills.items():
         if c in out.columns:
             out = out.fillna({c: v})
 
-    # Cast boolean superhost to string so StringIndexer behaves consistently.
-    if "host_is_superhost" in out.columns:
-        out = out.withColumn("host_is_superhost", F.col("host_is_superhost").cast("string"))
     return out
 
 
-def build_feature_stages(categorical: list[str] | None = None, numeric: list[str] | None = None) -> list:
+def build_feature_stages(
+    categorical: list[str] | None = None,
+    numeric: list[str] | None = None,
+) -> list:
     cat = categorical or CATEGORICAL_FEATURES
     num = numeric or NUMERIC_FEATURES
 
+    # Only include cats/nums that exist — guarded by caller via select_features.
     indexers = [
         StringIndexer(inputCol=c, outputCol=f"{c}_idx", handleInvalid="keep")
         for c in cat
     ]
     encoder = OneHotEncoder(
         inputCols=[f"{c}_idx" for c in cat],
-        outputCols=[f"{c}_oh"  for c in cat],
+        outputCols=[f"{c}_oh" for c in cat],
         handleInvalid="keep",
     )
     assembler = VectorAssembler(
@@ -71,6 +76,9 @@ def build_feature_stages(categorical: list[str] | None = None, numeric: list[str
     return [*indexers, encoder, assembler, scaler]
 
 
-def fit_features_only(df: DataFrame, categorical: list[str] | None = None, numeric: list[str] | None = None) -> PipelineModel:
-    """Convenience: fit the feature transformer alone (useful for benchmarking)."""
+def fit_features_only(
+    df: DataFrame,
+    categorical: list[str] | None = None,
+    numeric: list[str] | None = None,
+) -> PipelineModel:
     return Pipeline(stages=build_feature_stages(categorical, numeric)).fit(df)

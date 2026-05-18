@@ -9,16 +9,17 @@ from ..utils.io import read_parquet
 
 
 def run(spark: SparkSession) -> DataFrame:
-    listings = read_parquet(spark, PROCESSED_DIR / "listings").filter(F.col("price").isNotNull())
+    listings = read_parquet(spark, PROCESSED_DIR / "listings")
 
     agg = (
         listings
-        .groupBy("city", "neighbourhood_cleansed")
+        .groupBy("city", "neighbourhood_group", "neighbourhood")
         .agg(
             F.expr("percentile_approx(price, 0.5)").alias("median_price"),
+            F.avg("price").alias("mean_price"),
             F.count("id").alias("n_listings"),
         )
-        .filter(F.col("n_listings") >= 20)
+        .filter(F.col("n_listings") >= 10)
     )
 
     w_top    = Window.partitionBy("city").orderBy(F.col("median_price").desc())

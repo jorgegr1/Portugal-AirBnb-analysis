@@ -1,7 +1,4 @@
-"""Registry: query name → callable returning a DataFrame.
-
-Used by jobs/run_queries.py and by the Streamlit dashboard's Query Results page.
-"""
+"""Registry: query name → callable returning a DataFrame."""
 from __future__ import annotations
 
 from typing import Callable
@@ -19,6 +16,7 @@ from . import (
     q08_property_type_share,
     q09_review_demand_trend,
     q10_price_outliers,
+    q11_municipality_comparison,
 )
 
 QueryFn = Callable[[SparkSession], DataFrame]
@@ -34,17 +32,19 @@ QUERIES: dict[str, QueryFn] = {
     "q08": q08_property_type_share.run,
     "q09": q09_review_demand_trend.run,
     "q10": q10_price_outliers.run,
+    "q11": q11_municipality_comparison.run,
 }
 
 DESCRIPTIONS: dict[str, str] = {
     "q01": "Top/bottom 10 neighbourhoods by median price per city",
-    "q02": "Price seasonality from calendar (median monthly price per city)",
+    "q02": "Availability seasonality: occupancy rate per month per city (calendar)",
     "q03": "Availability/occupancy by room type and city",
-    "q04": "Superhost vs regular host premium",
+    "q04": "Multi-listing vs single-listing host comparison",
     "q05": "Host concentration (Pareto curve)",
     "q06": "Correlation: reviews_per_month × price per neighbourhood",
-    "q07": "Top 10 neighbourhoods by estimated revenue",
-    "q08": "Property-type market share per city",
+    "q07": "Top 10 neighbourhoods by estimated annual revenue",
+    "q08": "Room-type market share per city",
     "q09": "Monthly review trend + YoY growth per city",
     "q10": "Price outlier prevalence per city × room_type",
+    "q11": "Municipality-level comparison (neighbourhood_group)",
 }

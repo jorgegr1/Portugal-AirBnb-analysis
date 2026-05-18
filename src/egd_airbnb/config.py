@@ -22,6 +22,7 @@ CITIES: dict[str, str] = {
 }
 
 DATASETS = ("listings", "calendar", "reviews")
+REFERENCE_DATASETS = ("neighbourhoods",)
 
 SPARK_DRIVER_MEMORY = os.environ.get("SPARK_DRIVER_MEMORY", "4g")
 DEFAULT_MASTER      = os.environ.get("SPARK_MASTER", "local[*]")
@@ -31,3 +32,7 @@ SHUFFLE_PARTITIONS  = int(os.environ.get("SPARK_SHUFFLE_PARTITIONS", "200"))
 def ensure_dirs() -> None:
     for p in (INTERIM_DIR, PROCESSED_DIR, RESULTS_DIR, FIGURES_DIR, BENCH_DIR, MODELS_DIR):
         p.mkdir(parents=True, exist_ok=True)
+
+# Convenience path helpers
+def processed(dataset: str) -> "Path":  # type: ignore[name-defined]
+    return PROCESSED_DIR / dataset

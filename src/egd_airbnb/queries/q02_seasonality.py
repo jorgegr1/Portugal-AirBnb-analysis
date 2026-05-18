@@ -1,4 +1,9 @@
-"""Q2 — Median adjusted_price per month per city, joining calendar × listings."""
+"""Q2 — Availability seasonality: % of listings available per month per city.
+
+Calendar prices are null in the current snapshot, so we use the `available` flag
+as the demand signal. Low availability → high demand. We also enrich with the
+listing price to compute an estimated monthly revenue proxy.
+"""
 from __future__ import annotations
 
 from pyspark.sql import DataFrame, SparkSession
@@ -11,11 +16,12 @@ from ..utils.io import read_parquet
 def run(spark: SparkSession) -> DataFrame:
     calendar = (
         read_parquet(spark, PROCESSED_DIR / "calendar")
-        .filter(F.col("adjusted_price").isNotNull())
-        .filter(F.col("adjusted_price").between(10, 2000))
+        .select("listing_id", "city", "date", "available", "year", "month")
+        .filter(F.col("date").isNotNull())
     )
     listings = read_parquet(spark, PROCESSED_DIR / "listings").select(
-        F.col("id").alias("listing_id"), F.col("city").alias("listing_city"), "room_type",
+        F.col("id").alias("listing_id"), "price", "room_type",
+        F.col("city").alias("listing_city"),
     )
 
     joined = calendar.join(listings, on="listing_id", how="inner")
@@ -24,9 +30,13 @@ def run(spark: SparkSession) -> DataFrame:
         joined
         .groupBy("city", "year", "month")
         .agg(
-            F.expr("percentile_approx(adjusted_price, 0.5)").alias("median_price"),
-            F.avg("adjusted_price").alias("mean_price"),
-            F.count("*").alias("n_observations"),
+            F.avg((F.col("available") == True).cast("int")).alias("availability_rate"),
+            (F.lit(1.0) - F.avg((F.col("available") == True).cast("int"))).alias("occupancy_rate"),
+            F.count("*").alias("n_calendar_days"),
+            # Revenue proxy: listing price × booked days
+            F.sum(
+                F.when(F.col("available") == False, F.col("price")).otherwise(F.lit(0.0))
+            ).alias("estimated_revenue_proxy"),
         )
         .orderBy("city", "year", "month")
     )

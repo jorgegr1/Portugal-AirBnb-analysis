@@ -14,9 +14,10 @@ def clean_reviews(df: DataFrame) -> DataFrame:
         .withColumn("date", F.to_date("date"))
         .withColumn("year",  F.year("date"))
         .withColumn("month", F.month("date"))
-        .dropDuplicates(["listing_id", "reviewer_id", "date"])
     )
-    return out
+    # reviewer_id present in the detailed format but absent in the summary format.
+    dedup_cols = [c for c in ("listing_id", "reviewer_id", "date") if c in out.columns]
+    return out.dropDuplicates(dedup_cols)
 
 
 def run(spark, write: bool = True) -> DataFrame:

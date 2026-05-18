@@ -14,8 +14,16 @@ from egd_airbnb.config import MODELS_DIR, PROCESSED_DIR, RESULTS_DIR
 def load_listings() -> pd.DataFrame:
     path = PROCESSED_DIR / "listings"
     if not path.exists():
-        st.error(f"No processed listings at {path}. Run `make clean` first.")
+        st.error(f"No processed listings at {path}. Run `make ingest && make clean` first.")
         st.stop()
+    return pd.read_parquet(path)
+
+
+@st.cache_data(show_spinner="Loading neighbourhoods…")
+def load_neighbourhoods() -> pd.DataFrame:
+    path = PROCESSED_DIR / "neighbourhoods"
+    if not path.exists():
+        return pd.DataFrame(columns=["city", "neighbourhood_group", "neighbourhood"])
     return pd.read_parquet(path)
 
 
@@ -29,11 +37,10 @@ def load_query_result(query_id: str) -> pd.DataFrame:
 
 @lru_cache(maxsize=1)
 def get_dashboard_spark():
-    """Lazy Spark for the model-inference page only."""
     from egd_airbnb.spark_session import get_spark
     return get_spark("dashboard", master="local[2]")
 
 
 def latest_price_model_dir() -> Path | None:
-    candidates = sorted((MODELS_DIR).glob("price_*"))
+    candidates = sorted(MODELS_DIR.glob("price_*"))
     return candidates[-1] if candidates else None
