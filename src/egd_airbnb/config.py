@@ -15,16 +15,17 @@ FIGURES_DIR   = REPORTS_DIR / "figures"
 BENCH_DIR     = REPORTS_DIR / "benchmarks"
 MODELS_DIR    = PROJECT_ROOT / "models"
 
-# data/raw/ uses capitalised city folder names (Porto, Lisbon) as supplied.
+# data/raw/ uses capitalised city folder names as supplied.
 CITIES: dict[str, str] = {
     "porto":  "Porto",
     "lisbon": "Lisbon",
+    "madrid": "Madrid",
 }
 
 DATASETS = ("listings", "calendar", "reviews")
 REFERENCE_DATASETS = ("neighbourhoods",)
 
-SPARK_DRIVER_MEMORY = os.environ.get("SPARK_DRIVER_MEMORY", "4g")
+SPARK_DRIVER_MEMORY = os.environ.get("SPARK_DRIVER_MEMORY", "6g")
 DEFAULT_MASTER      = os.environ.get("SPARK_MASTER", "local[*]")
 SHUFFLE_PARTITIONS  = int(os.environ.get("SPARK_SHUFFLE_PARTITIONS", "200"))
 

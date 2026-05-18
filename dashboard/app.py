@@ -7,7 +7,7 @@ from egd_airbnb.config import PROCESSED_DIR
 
 st.set_page_config(page_title="EGD-AirBnB", page_icon="🏠", layout="wide")
 
-st.title("EGD — AirBnB (Porto · Lisbon)")
+st.title("EGD — AirBnB (Porto · Lisbon · Madrid)")
 st.markdown(
     """
 This dashboard explores the analytical and ML outputs of the EGD-AirBnB Spark pipeline.

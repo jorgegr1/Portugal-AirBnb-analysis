@@ -32,13 +32,19 @@ clean:
 queries:
 	$(PYTHON) -m jobs.run_queries --query $(QUERY)
 
-ml: ml-price ml-occupancy
+ml: ml-price ml-occupancy ml-monthly
 
 ml-price:
 	$(PYTHON) -m jobs.train_price_model
 
 ml-occupancy:
 	$(PYTHON) -m jobs.train_occupancy_model
+
+ml-monthly:
+	$(PYTHON) -m jobs.train_monthly_occupancy
+
+importance:
+	$(PYTHON) -m jobs.feature_importance
 
 bench-local:
 	$(PYTHON) -m jobs.benchmark --platform local --workload query_seasonality --runs 3
