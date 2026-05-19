@@ -6,9 +6,19 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
-RAW_DIR       = PROJECT_ROOT / "data" / "raw"
-INTERIM_DIR   = PROJECT_ROOT / "data" / "interim"
-PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
+# Allow overriding data root for cloud (e.g. DATA_ROOT=gs://egd-airbnb-bucket/data)
+_DATA_ROOT = os.environ.get("DATA_ROOT", "")
+
+if _DATA_ROOT:
+    # Cloud / GCS paths — stored as plain strings (not Path objects).
+    RAW_DIR       = f"{_DATA_ROOT}/raw"
+    INTERIM_DIR   = f"{_DATA_ROOT}/interim"
+    PROCESSED_DIR = f"{_DATA_ROOT}/processed"
+else:
+    RAW_DIR       = PROJECT_ROOT / "data" / "raw"
+    INTERIM_DIR   = PROJECT_ROOT / "data" / "interim"
+    PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
+
 REPORTS_DIR   = PROJECT_ROOT / "reports"
 RESULTS_DIR   = REPORTS_DIR / "results"
 FIGURES_DIR   = REPORTS_DIR / "figures"
@@ -17,9 +27,10 @@ MODELS_DIR    = PROJECT_ROOT / "models"
 
 # data/raw/ uses capitalised city folder names as supplied.
 CITIES: dict[str, str] = {
-    "porto":  "Porto",
-    "lisbon": "Lisbon",
-    "madrid": "Madrid",
+    "porto":     "Porto",
+    "lisbon":    "Lisbon",
+    "madrid":    "Madrid",
+    "barcelona": "Barcelona",
 }
 
 DATASETS = ("listings", "calendar", "reviews")

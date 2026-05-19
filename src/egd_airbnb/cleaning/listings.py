@@ -134,9 +134,9 @@ def clean_listings(df: DataFrame, detailed: DataFrame | None = None) -> DataFram
         if c in out.columns:
             out = out.withColumn(c, F.col(c).cast(T.DoubleType()))
 
-    # Summary price is a plain integer in the new format.
+    # Summary price may be "$48.00" format — strip $ and commas first.
     if "price" in out.columns:
-        out = out.withColumn("price", F.col("price").cast(T.DoubleType()))
+        out = out.withColumn("price", _parse_dollar_price("price"))
 
     if "last_review" in out.columns:
         out = out.withColumn("last_review", F.to_date("last_review"))

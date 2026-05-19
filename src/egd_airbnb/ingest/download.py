@@ -16,9 +16,16 @@ from ..config import CITIES, DATASETS, RAW_DIR
 DEFAULT_BASE = os.environ.get("INSIDE_AIRBNB_BASE_URL", "https://data.insideairbnb.com")
 
 
-def _url(base: str, city: str, snapshot: str, dataset: str) -> str:
-    # NOTE: Inside Airbnb URL format may change; verify on insideairbnb.com/get-the-data
-    return f"{base}/portugal/{city}/{snapshot}/data/{dataset}.csv.gz"
+URL_PATHS: dict[str, str] = {
+    "porto":     "portugal/norte/porto",
+    "lisbon":    "portugal/lisbon/lisbon",
+    "madrid":    "spain/comunidad-de-madrid/madrid",
+    "barcelona": "spain/catalonia/barcelona",
+}
+
+
+def _url(base: str, city_key: str, snapshot: str, dataset: str) -> str:
+    return f"{base}/{URL_PATHS[city_key]}/{snapshot}/data/{dataset}.csv.gz"
 
 
 def download_city(city_key: str, snapshot: str, base: str = DEFAULT_BASE) -> None:
@@ -27,8 +34,8 @@ def download_city(city_key: str, snapshot: str, base: str = DEFAULT_BASE) -> Non
     out_dir.mkdir(parents=True, exist_ok=True)
     for ds in DATASETS:
         out = out_dir / f"{ds}.csv.gz"
-        url = _url(base, folder.lower(), snapshot, ds)
-        print(f"GET {url} → {out}")
+        url = _url(base, city_key, snapshot, ds)
+        print(f"GET {url} -> {out}")
         with requests.get(url, stream=True, timeout=60) as r:
             r.raise_for_status()
             total = int(r.headers.get("content-length", 0))

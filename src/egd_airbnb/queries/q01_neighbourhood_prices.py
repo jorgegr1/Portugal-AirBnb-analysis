@@ -13,7 +13,7 @@ def run(spark: SparkSession) -> DataFrame:
 
     agg = (
         listings
-        .groupBy("city", "neighbourhood_group", "neighbourhood")
+        .groupBy("city", "neighbourhood_group_cleansed", "neighbourhood_cleansed")
         .agg(
             F.expr("percentile_approx(price, 0.5)").alias("median_price"),
             F.avg("price").alias("mean_price"),
