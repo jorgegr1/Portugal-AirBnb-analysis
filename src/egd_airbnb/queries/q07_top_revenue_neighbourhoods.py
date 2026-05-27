@@ -16,7 +16,7 @@ def run(spark: SparkSession) -> DataFrame:
     agg = (
         listings
         .filter(F.col("estimated_revenue_365").isNotNull())
-        .groupBy("city", "neighbourhood_group", "neighbourhood")
+        .groupBy("city", "neighbourhood_group_cleansed", "neighbourhood_cleansed")
         .agg(
             F.sum("estimated_revenue_365").alias("total_estimated_revenue"),
             F.avg("estimated_revenue_365").alias("avg_estimated_revenue"),

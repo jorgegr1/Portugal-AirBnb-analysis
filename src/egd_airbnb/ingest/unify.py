@@ -21,9 +21,14 @@ from ..utils.io import write_parquet
 
 def _read_city_csv(spark: SparkSession, city_key: str, dataset: str) -> DataFrame:
     folder = CITIES[city_key]
-    path = RAW_DIR / folder / f"{dataset}.csv"
-    if not path.exists():
-        raise FileNotFoundError(f"Missing raw file: {path}")
+    path_csv = RAW_DIR / folder / f"{dataset}.csv"
+    path_gz = RAW_DIR / folder / f"{dataset}.csv.gz"
+    if path_csv.exists():
+        path = path_csv
+    elif path_gz.exists():
+        path = path_gz
+    else:
+        raise FileNotFoundError(f"Missing raw file: {path_csv} or {path_gz}")
     return (
         spark.read
         .option("header", True)

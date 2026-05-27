@@ -16,7 +16,7 @@ def run(spark: SparkSession) -> DataFrame:
 
     return (
         listings
-        .groupBy("city", "neighbourhood_group", "neighbourhood")
+        .groupBy("city", "neighbourhood_group_cleansed", "neighbourhood_cleansed")
         .agg(
             F.corr("reviews_per_month", "price").alias("corr_rpm_price"),
             F.count("id").alias("n_listings"),

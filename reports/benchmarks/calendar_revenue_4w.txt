@@ -1,0 +1,91 @@
+Job [4c2c5d043a5a432185fd6462256b8e7e] submitted.
+Waiting for job output...
+26/05/19 20:08:37 INFO SparkEnv: Registering MapOutputTracker
+26/05/19 20:08:37 INFO SparkEnv: Registering BlockManagerMaster
+26/05/19 20:08:37 INFO SparkEnv: Registering BlockManagerMasterHeartbeat
+26/05/19 20:08:37 INFO SparkEnv: Registering OutputCommitCoordinator
+26/05/19 20:08:39 INFO MetricsConfig: Loaded properties from hadoop-metrics2.properties
+26/05/19 20:08:39 INFO MetricsSystemImpl: Scheduled Metric snapshot period at 10 second(s).
+26/05/19 20:08:39 INFO MetricsSystemImpl: google-hadoop-file-system metrics system started
+26/05/19 20:08:39 INFO DataprocSparkPlugin: Registered 188 driver metrics
+26/05/19 20:08:40 INFO DefaultNoHARMFailoverProxyProvider: Connecting to ResourceManager at egd-cluster-m.europe-west1-b.c.egd-airbnb-2026.internal./10.132.0.41:8032
+26/05/19 20:08:40 INFO AHSProxy: Connecting to Application History server at egd-cluster-m.europe-west1-b.c.egd-airbnb-2026.internal./10.132.0.41:10200
+26/05/19 20:08:41 INFO Configuration: resource-types.xml not found
+26/05/19 20:08:41 INFO ResourceUtils: Unable to find 'resource-types.xml'.
+26/05/19 20:08:42 INFO YarnClientImpl: Submitted application application_1779220797238_0004
+26/05/19 20:08:43 INFO DefaultNoHARMFailoverProxyProvider: Connecting to ResourceManager at egd-cluster-m.europe-west1-b.c.egd-airbnb-2026.internal./10.132.0.41:8030
+26/05/19 20:08:45 INFO GoogleCloudStorageImpl: Ignoring exception of type GoogleJsonResponseException; verified object already exists with desired state.
+26/05/19 20:08:46 INFO GoogleHadoopOutputStream: hflush(): No-op due to rate limit (RateLimiter[stableRate=0.2qps]): readers will *not* yet see flushed data for gs://dataproc-temp-europe-west1-871714042084-azmurl56/ad47ddbf-9344-4f25-a8d7-007e1266024f/spark-job-history/application_1779220797238_0004.inprogress [CONTEXT ratelimit_period="1 MINUTES" ]
+[workload] calendar_revenue: 26203401 calendar rows loaded
+26/05/19 20:09:10 INFO GhfsGlobalStorageStatistics: periodic connector metrics: {action_http_delete_request=4, action_http_delete_request_duration=184, action_http_delete_request_max=63, action_http_delete_request_mean=46, action_http_delete_request_min=33, action_http_post_request=11, action_http_post_request_duration=655, action_http_post_request_max=103, action_http_post_request_mean=59, action_http_post_request_min=31, action_http_put_request=5, action_http_put_request_duration=358, action_http_put_request_max=105, action_http_put_request_mean=71, action_http_put_request_min=61, directories_created=1, files_created=1, gcs_api_client_non_found_response_count=37, gcs_api_client_precondition_failed_response_count=1, gcs_api_client_side_error_count=38, gcs_api_time=3054, gcs_api_total_request_count=81, gcs_connector_time=2888, gcs_get_other_request=4, gcs_list_dir_request=10, gcs_list_dir_request_duration=214, gcs_list_dir_request_max=28, gcs_list_dir_request_mean=21, gcs_list_dir_request_min=14, gcs_list_file_request=8, gcs_list_file_request_duration=348, gcs_list_file_request_max=173, gcs_list_file_request_mean=43, gcs_list_file_request_min=12, gcs_metadata_request=39, gcs_metadata_request_duration=1196, gcs_metadata_request_max=177, gcs_metadata_request_mean=30, gcs_metadata_request_min=17, gs_filesystem_create=4, gs_filesystem_initialize=3, op_create=1, op_create_duration=104, op_create_max=104, op_create_mean=104, op_create_min=104, op_exists=4, op_get_file_status=7, op_get_file_status_duration=928, op_get_file_status_max=697, op_get_file_status_mean=132, op_get_file_status_min=24, op_get_list_status_result_size=92, op_hflush=35, op_hflush_duration=1313, op_hflush_max=332, op_hflush_mean=37, op_list_status=10, op_list_status_duration=298, op_list_status_max=34, op_list_status_mean=29, op_list_status_min=27, op_mkdirs=1, op_mkdirs_duration=245, op_mkdirs_max=245, op_mkdirs_mean=245, op_mkdirs_min=245, stream_write_bytes=290909, uptimeSeconds=32}
+[CONTEXT ratelimit_period="5 MINUTES" ]
+[workload] calendar_revenue produced 6335 rows
+[bench] workers=4 run=0 calendar_revenue -> 41.73s
+[workload] calendar_revenue: 26203401 calendar rows loaded
+[workload] calendar_revenue produced 6335 rows
+[bench] workers=4 run=1 calendar_revenue -> 17.35s
+26/05/19 20:09:46 INFO GoogleHadoopOutputStream: hflush(): No-op due to rate limit (RateLimiter[stableRate=0.2qps]): readers will *not* yet see flushed data for gs://dataproc-temp-europe-west1-871714042084-azmurl56/ad47ddbf-9344-4f25-a8d7-007e1266024f/spark-job-history/application_1779220797238_0004.inprogress [CONTEXT ratelimit_period="1 MINUTES [skipped: 89]" ]
+[workload] calendar_revenue: 26203401 calendar rows loaded
+[workload] calendar_revenue produced 6335 rows
+[bench] workers=4 run=2 calendar_revenue -> 13.29s
+26/05/19 20:09:59 INFO DataprocSparkPlugin: Shutting down driver plugin. metrics=[action_http_patch_request=0, files_created=1, gcs_api_server_timeout_count=0, op_get_list_status_result_size=276, op_open=0, action_http_delete_request=10, gcs_api_time=6968, gcs_backoff_count=0, gcs_api_client_unauthorized_response_count=0, stream_read_close_operations=0, stream_read_bytes_backwards_on_seek=0, gs_filesystem_create=4, exception_count=0, gcs_exception_count=0, gcs_api_total_request_count=193, op_create=1, stream_read_vectored_operations=0, gcs_metadata_request=89, gcs_api_client_bad_request_count=0, action_http_put_request=11, op_create_non_recursive=0, gcs_api_client_gone_response_count=0, gs_filesystem_initialize=3, stream_read_vectored_incoming_ranges=0, stream_write_operations=0, gcs_list_dir_request=30, stream_read_operations=0, gcs_api_client_request_timeout_count=0, op_rename=0, op_get_file_status=19, op_glob_status=0, op_exists=12, stream_write_bytes=1259086, op_xattr_list=0, op_get_delegation_token=0, gcs_api_server_unavailable_count=0, directories_created=1, files_delete_rejected=0, stream_read_vectored_combined_ranges=0, op_xattr_get_named=0, gcs_list_file_request=20, op_hsync=0, action_http_get_request=0, stream_read_operations_incomplete=0, op_delete=0, stream_read_bytes=0, gcs_api_client_non_found_response_count=87, op_list_located_status=0, gcs_api_client_requested_range_not_statisfiable_count=0, op_hflush=144, op_list_status=30, stream_read_vectored_read_bytes_discarded=0, op_xattr_get_named_map=0, gcs_api_client_side_error_count=88, op_get_file_checksum=0, gcs_api_server_internal_error_count=0, stream_read_seek_bytes_skipped=0, stream_write_close_operations=0, gcs_get_media_request=0, gcs_connector_time=5617, files_deleted=0, action_http_post_request=23, op_mkdirs=1, gcs_api_client_rate_limit_error_count=0, op_copy_from_local_file=0, gcs_api_server_bad_gateway_count=0, stream_readVectored_range_duration=0, stream_read_seek_backward_operations=0, gcs_api_server_side_error_count=0, stream_read_seek_operations=0, gcs_get_other_request=10, stream_read_seek_forward_operations=0, gcs_api_client_precondition_failed_response_count=1, op_xattr_get_map=0, delegation_tokens_issued=0, gcs_backoff_time=0, gcs_list_dir_request_min=12, gcs_metadata_request_min=15, op_delete_min=0, op_glob_status_min=0, op_create_non_recursive_min=0, op_hsync_min=0, op_xattr_get_named_min=0, op_xattr_get_named_map_min=0, op_hflush_min=0, op_xattr_list_min=0, action_http_put_request_min=61, op_open_min=0, gcs_list_file_request_min=12, stream_write_close_operations_min=0, op_create_min=104, action_http_delete_request_min=29, op_mkdirs_min=245, op_list_status_min=21, gcs_get_media_request_min=0, stream_readVectored_range_duration_min=0, stream_read_vectored_operations_min=0, stream_read_close_operations_min=0, stream_read_operations_min=0, stream_read_seek_operations_min=0, op_xattr_get_map_min=0, stream_write_operations_min=0, action_http_patch_request_min=0, op_get_file_status_min=21, op_rename_min=0, delegation_tokens_issued_min=0, action_http_post_request_min=31, stream_read_close_operations_max=0, stream_read_seek_operations_max=0, op_hflush_max=384, op_xattr_list_max=0, op_xattr_get_map_max=0, action_http_put_request_max=105, action_http_patch_request_max=0, action_http_post_request_max=139, stream_write_close_operations_max=0, action_http_delete_request_max=63, op_mkdirs_max=245, gcs_get_media_request_max=0, op_rename_max=0, stream_read_vectored_operations_max=0, stream_readVectored_range_duration_max=0, op_xattr_get_named_map_max=0, stream_write_operations_max=0, stream_read_operations_max=0, op_xattr_get_named_max=0, op_glob_status_max=0, op_create_non_recursive_max=0, op_get_file_status_max=697, op_open_max=0, delegation_tokens_issued_max=0, gcs_list_file_request_max=173, gcs_metadata_request_max=177, op_create_max=104, op_delete_max=0, op_list_status_max=45, op_hsync_max=0, gcs_list_dir_request_max=33, op_open_mean=0, op_xattr_list_mean=0, op_rename_mean=0, op_xattr_get_map_mean=0, gcs_list_dir_request_mean=20, op_glob_status_mean=0, stream_read_seek_operations_mean=0, gcs_list_file_request_mean=33, stream_write_operations_mean=0, op_hflush_mean=21, gcs_metadata_request_mean=29, op_list_status_mean=28, stream_read_close_operations_mean=0, op_xattr_get_named_map_mean=0, stream_read_vectored_operations_mean=0, op_mkdirs_mean=245, action_http_post_request_mean=65, stream_write_close_operations_mean=0, action_http_put_request_mean=76, action_http_patch_request_mean=0, op_hsync_mean=0, delegation_tokens_issued_mean=0, action_http_delete_request_mean=41, stream_read_operations_mean=0, op_create_mean=104, op_delete_mean=0, op_create_non_recursive_mean=0, stream_readVectored_range_duration_mean=0, op_xattr_get_named_mean=0, gcs_get_media_request_mean=0, op_get_file_status_mean=71, op_delete_duration=0, op_get_file_status_duration=1359, action_http_put_request_duration=846, stream_write_operations_duration=0, op_hsync_duration=0, gcs_metadata_request_duration=2636, gcs_get_media_request_duration=0, gcs_list_file_request_duration=678, op_list_status_duration=862, op_mkdirs_duration=245, op_open_duration=0, op_create_duration=104, op_hflush_duration=3047, gcs_list_dir_request_duration=624, op_glob_status_duration=0, stream_read_operations_duration=0, action_http_delete_request_duration=410, action_http_post_request_duration=1502, op_rename_duration=0]
+
+===BENCHMARK_RESULT===
+{
+  "workload": "calendar_revenue",
+  "platform": "dataproc",
+  "num_workers": 4,
+  "runs": [
+    {
+      "run": 0,
+      "wall_secs": 41.7258
+    },
+    {
+      "run": 1,
+      "wall_secs": 17.3515
+    },
+    {
+      "run": 2,
+      "wall_secs": 13.292
+    }
+  ]
+}
+===END===
+Job [4c2c5d043a5a432185fd6462256b8e7e] finished successfully.
+done: true
+driverControlFilesUri: gs://dataproc-staging-europe-west1-871714042084-75pov23c/google-cloud-dataproc-metainfo/ad47ddbf-9344-4f25-a8d7-007e1266024f/jobs/4c2c5d043a5a432185fd6462256b8e7e/
+driverOutputResourceUri: gs://dataproc-staging-europe-west1-871714042084-75pov23c/google-cloud-dataproc-metainfo/ad47ddbf-9344-4f25-a8d7-007e1266024f/jobs/4c2c5d043a5a432185fd6462256b8e7e/driveroutput
+jobUuid: 3c3c57c4-274d-3736-ba3d-13be7b787c4e
+placement:
+  clusterName: egd-cluster
+  clusterUuid: ad47ddbf-9344-4f25-a8d7-007e1266024f
+pysparkJob:
+  args:
+  - --workload
+  - calendar_revenue
+  - --num-workers
+  - '4'
+  - --runs
+  - '3'
+  mainPythonFileUri: gs://dataproc-staging-europe-west1-871714042084-75pov23c/google-cloud-dataproc-metainfo/ad47ddbf-9344-4f25-a8d7-007e1266024f/jobs/4c2c5d043a5a432185fd6462256b8e7e/staging/benchmark_dataproc.py#1779221305976026
+reference:
+  jobId: 4c2c5d043a5a432185fd6462256b8e7e
+  projectId: egd-airbnb-2026
+status:
+  state: DONE
+  stateStartTime: '2026-05-19T20:10:01.701800Z'
+statusHistory:
+- state: PENDING
+  stateStartTime: '2026-05-19T20:08:26.167821Z'
+- state: SETUP_DONE
+  stateStartTime: '2026-05-19T20:08:26.241276Z'
+- details: Agent reported job success
+  state: RUNNING
+  stateStartTime: '2026-05-19T20:08:26.654196Z'
+yarnApplications:
+- memoryMbSeconds: '687201'
+  name: bench-calendar_revenue-w4
+  progress: 1.0
+  state: FINISHED
+  trackingUrl: http://egd-cluster-m.europe-west1-b.c.egd-airbnb-2026.internal.:8088/proxy/application_1779220797238_0004/
+  vcoreSeconds: '209'
