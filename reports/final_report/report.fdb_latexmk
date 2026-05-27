@@ -1,14 +1,14 @@
 # Fdb version 4
-["bibtex report"] 1779136874.65593 "report.aux" "report.bbl" "report" 1779136967.65496 0
+["bibtex report"] 1779841564.00759 "report.aux" "report.bbl" "report" 1779841564.66251 0
   "./references.bib" 1779136601.26307 4934 c7c437453961679c143a7b9ce077161c ""
   "/opt/homebrew/Cellar/texlive/20260301/share/texmf-dist/bibtex/bst/ieeetran/IEEEtran.bst" 1772380719 57748 7c8250ecf02814ce6ddc0cdbb63df1dd ""
-  "report.aux" 1779136967.53026 5793 38f5bd760533e56c4847c323c8709c08 "pdflatex"
+  "report.aux" 1779841564.51034 5793 9a8b475e2343e12d1eceb2d7e64a8b72 "pdflatex"
   (generated)
   "report.bbl"
   "report.blg"
   (rewritten before read)
-["pdflatex"] 1779136967.19153 "/Users/josepedroevans/Desktop/MECD/EGD/EGD-AirBnb/reports/final_report/report.tex" "report.pdf" "report" 1779136967.65505 0
-  "/Users/josepedroevans/Desktop/MECD/EGD/EGD-AirBnb/reports/final_report/report.tex" 1779136967.02599 24644 60dba2f1c98a3a471d74b172dd75f6b3 ""
+["pdflatex"] 1779841564.07212 "/Users/josepedroevans/Desktop/MECD/EGD/EGD-AirBnb/reports/final_report/report.tex" "report.pdf" "report" 1779841564.66261 0
+  "/Users/josepedroevans/Desktop/MECD/EGD/EGD-AirBnb/reports/final_report/report.tex" 1779841563.08076 25303 83ecbae5984738dd8e75d0c28836ca17 ""
   "/opt/homebrew/Cellar/texlive/20260301/share/texmf-dist/fonts/enc/dvips/base/8r.enc" 1772380719 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/opt/homebrew/Cellar/texlive/20260301/share/texmf-dist/fonts/map/fontname/texfonts.map" 1772380719 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/opt/homebrew/Cellar/texlive/20260301/share/texmf-dist/fonts/map/pdftex/updmap/pdftex.map" 1772380719 5541360 f183aac233c4cd1e5ef882fcbe8e7096 ""
@@ -124,10 +124,10 @@
   "/opt/homebrew/Cellar/texlive/20260301/share/texmf-dist/tex/latex/xcolor/xcolor.sty" 1772380719 55384 b454dec21c2d9f45ec0b793f0995b992 ""
   "/opt/homebrew/Cellar/texlive/20260301/share/texmf-dist/web2c/texmf.cnf" 1772380719 43633 14bbc273cebd985e64ab1a698333eaf9 ""
   "/opt/homebrew/Cellar/texlive/20260301/share/texmf-var/web2c/pdftex/pdflatex.fmt" 1772380719 3636956 5168b884cb430e6a6336cfea08fa659a ""
-  "report.aux" 1779136967.53026 5793 38f5bd760533e56c4847c323c8709c08 "pdflatex"
-  "report.bbl" 1779136917.12553 4358 a05b399b08c7470b16556cefc70fae89 "bibtex report"
-  "report.out" 1779136967.53083 3556 ee7ab1b5937d59f57f24c47d1ad61198 "pdflatex"
-  "report.tex" 1779136967.02599 24644 60dba2f1c98a3a471d74b172dd75f6b3 ""
+  "report.aux" 1779841564.51034 5793 9a8b475e2343e12d1eceb2d7e64a8b72 "pdflatex"
+  "report.bbl" 1779841564.07035 4292 bb29082491f1ebc8449b537550342418 "bibtex report"
+  "report.out" 1779841564.51111 3556 ee7ab1b5937d59f57f24c47d1ad61198 "pdflatex"
+  "report.tex" 1779841563.08076 25303 83ecbae5984738dd8e75d0c28836ca17 ""
   (generated)
   "report.aux"
   "report.log"

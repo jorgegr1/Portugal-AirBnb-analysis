@@ -17,21 +17,46 @@
 
 \begin{document}
 
-\title{Distributed Analysis and Predictive Modelling of Short-Term Rentals: A PySpark Pipeline Over Porto, Lisbon and Madrid Airbnb Data\\
-{\footnotesize \textsuperscript{*}Big Data Engineering (EGD) --- MECD, FEUP}}
+\title{Distributed Analysis and Predictive Modeling of Short-Term Rentals: A PySpark Pipeline Over Porto, Lisbon and Madrid Airbnb Data\\
+{\footnotesize \textsuperscript{*}Big Data Engineering (EGD), MECD, FEUP}}
 
 \author{
-\IEEEauthorblockN{Author Name}
-\IEEEauthorblockA{\textit{Master in Data Science and Engineering} \\
-\textit{Faculdade de Engenharia da Universidade do Porto}\\
-Porto, Portugal \\
-email@up.pt}
+    \IEEEauthorblockN{Daniel Dória}
+    \IEEEauthorblockA{\textit{MECD} \\
+    \textit{Faculty of Engineering, UP}\\
+    Porto, Portugal \\
+    up202108808@up.pt}
+    \and
+    \IEEEauthorblockN{Diego Montoya}
+    \IEEEauthorblockA{\textit{MECD} \\
+    \textit{Faculty of Engineering, UP}\\
+    Porto, Portugal \\
+    up202502851@up.pt}
+    \and
+    \IEEEauthorblockN{Jorge Gamonal}
+    \IEEEauthorblockA{\textit{MECD} \\
+    \textit{Faculty of Engineering, UP}\\
+    Porto, Portugal \\
+    up202602660@up.pt}
+    \and
+    \IEEEauthorblockN{José Evans}
+    \IEEEauthorblockA{\textit{MECD} \\
+    \textit{Faculty of Engineering, UP}\\
+    Porto, Portugal \\
+    up202108818 @up.pt}
+    \and
+    \IEEEauthorblockN{Miguel Santos}
+    \IEEEauthorblockA{\textit{MECD} \\
+    \textit{Faculty of Engineering, UP}\\
+    Porto, Portugal \\
+    up202008450@up.pt}
 }
+
 
 \maketitle
 
 \begin{abstract}
-We present an end-to-end Big Data pipeline for analytical exploration and predictive modelling of Inside Airbnb short-term rental data covering three Iberian capitals --- Porto, Lisbon and Madrid --- on Apache Spark. The pipeline ingests 53{,}608 listings, a 23.5\,M-row daily availability calendar and 2.68\,M reviews from raw CSV into Parquet, executes eleven cross-city analytical queries, and trains three machine-learning models built on a shared MLlib pipeline. A gradient-boosted price regressor attains $R^2_{\log} = 0.71$ ($\text{RMSE} = \text{\texteuro}65$) on the held-out test split; a random forest classifier predicts a listing's long-run high-occupancy status with $\text{AUC}=0.73$; and a month-aware model trained on 500\,K calendar--listings joins predicts high-demand months with $\text{AUC}=0.77$ using cyclic encodings of the calendar month. We additionally outline the methodology for a scalability study comparing local thread-level parallelism with cloud execution on Google Dataproc.
+We present an end-to-end Big Data pipeline for analytical exploration and predictive modeling of Inside Airbnb short-term rental data covering three Iberian capitals --- Porto, Lisbon and Madrid --- on Apache Spark. The pipeline ingests 53{,}608 listings, a 23.5\,M-row daily availability calendar and 2.68\,M reviews from raw CSV into Parquet, executes eleven cross-city analytical queries, and trains three machine-learning models built on a shared MLlib pipeline. A gradient-boosted price regressor attains $R^2_{\log} = 0.71$ ($\text{RMSE} = \text{\texteuro}65$) on the held-out test split; a random forest classifier predicts a listing's long-run high-occupancy status with $\text{AUC}=0.73$; and a month-aware model trained on 500\,K calendar--listings joins predicts high-demand months with $\text{AUC}=0.77$ using cyclic encodings of the calendar month. We additionally outline the methodology for a scalability study comparing local thread-level parallelism with cloud execution on Google Dataproc.
 \end{abstract}
 
 \begin{IEEEkeywords}

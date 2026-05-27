@@ -7,8 +7,7 @@
 \providecommand{\BIBentrySTDinterwordspacing}{\spaceskip=0pt\relax}
 \providecommand{\BIBentryALTinterwordstretchfactor}{4}
 \providecommand{\BIBentryALTinterwordspacing}{\spaceskip=\fontdimen2\font plus
-\BIBentryALTinterwordstretchfactor\fontdimen3\font minus
-  \fontdimen4\font\relax}
+\BIBentryALTinterwordstretchfactor\fontdimen3\font minus \fontdimen4\font\relax}
 \providecommand{\BIBforeignlanguage}[2]{{%
 \expandafter\ifx\csname l@#1\endcsname\relax
 \typeout{** WARNING: IEEEtran.bst: No hyphenation pattern has been}%
@@ -22,83 +21,51 @@
 \BIBdecl
 
 \bibitem{insideairbnb2024}
-M.~Cox, ``Inside {A}irbnb: Adding data to the debate,''
-  \url{http://insideairbnb.com}, 2024.
+M.~Cox, ``Inside {A}irbnb: Adding data to the debate,'' \url{http://insideairbnb.com}, 2024.
 
 \bibitem{wang2017price}
-D.~Wang and J.~L. Nicolau, ``Price determinants of sharing economy based
-  accommodation rental: A study of listings from 33 cities on {A}irbnb.com,''
-  \emph{International Journal of Hospitality Management}, vol.~62, pp.
-  120--131, 2017.
+D.~Wang and J.~L. Nicolau, ``Price determinants of sharing economy based accommodation rental: A study of listings from 33 cities on {A}irbnb.com,'' \emph{International Journal of Hospitality Management}, vol.~62, pp. 120--131, 2017.
 
 \bibitem{chen2017consumer}
-Y.~Chen and K.~Xie, ``Consumer valuation of {A}irbnb listings: a hedonic
-  pricing approach,'' \emph{International Journal of Contemporary Hospitality
-  Management}, vol.~29, no.~9, pp. 2405--2424, 2017.
+Y.~Chen and K.~Xie, ``Consumer valuation of {A}irbnb listings: a hedonic pricing approach,'' \emph{International Journal of Contemporary Hospitality Management}, vol.~29, no.~9, pp. 2405--2424, 2017.
 
 \bibitem{kalehbasti2019airbnb}
-P.~R. Kalehbasti, L.~Nikolenko, and H.~Rezaei, ``{A}irbnb price prediction
-  using machine learning and sentiment analysis,'' \emph{arXiv preprint
-  arXiv:1907.12665}, 2019.
+P.~R. Kalehbasti, L.~Nikolenko, and H.~Rezaei, ``{A}irbnb price prediction using machine learning and sentiment analysis,'' \emph{arXiv preprint arXiv:1907.12665}, 2019.
 
 \bibitem{tang2015neighborhood}
-E.~Tang and K.~Sangani, ``Neighborhood and price prediction for {S}an
-  {F}rancisco {A}irbnb listings,'' Stanford CS229 Final Project, 2015.
+E.~Tang and K.~Sangani, ``Neighborhood and price prediction for {S}an {F}rancisco {A}irbnb listings,'' Stanford CS229 Final Project, 2015.
 
 \bibitem{yang2014predicting}
-Y.~Yang, B.~Pan, and H.~Song, ``Predicting hotel demand using destination
-  marketing organization's web traffic data,'' \emph{Journal of Travel
-  Research}, vol.~53, no.~4, pp. 433--447, 2014.
+Y.~Yang, B.~Pan, and H.~Song, ``Predicting hotel demand using destination marketing organization's web traffic data,'' \emph{Journal of Travel Research}, vol.~53, no.~4, pp. 433--447, 2014.
 
 \bibitem{pan2012forecasting}
-B.~Pan, D.~C. Wu, and H.~Song, ``Forecasting hotel room demand using search
-  engine data,'' \emph{Journal of Hospitality and Tourism Technology}, vol.~3,
-  no.~3, pp. 196--210, 2012.
+B.~Pan, D.~C. Wu, and H.~Song, ``Forecasting hotel room demand using search engine data,'' \emph{Journal of Hospitality and Tourism Technology}, vol.~3, no.~3, pp. 196--210, 2012.
 
 \bibitem{cai2019hotel}
-H.~Cai and Y.~Liu, ``Hotel demand forecasting: A deep learning approach,'' in
-  \emph{Proc. International Conference on Artificial Intelligence (ICAI)},
-  2019.
+H.~Cai and Y.~Liu, ``Hotel demand forecasting: A deep learning approach,'' in \emph{Proc. International Conference on Artificial Intelligence (ICAI)}, 2019.
 
 \bibitem{liu2018cyclic}
-Y.~Liu and J.~Wang, ``Cyclical encoding of periodic features for machine
-  learning,'' \emph{Pattern Recognition Letters}, vol. 113, pp. 18--25, 2018.
+Y.~Liu and J.~Wang, ``Cyclical encoding of periodic features for machine learning,'' \emph{Pattern Recognition Letters}, vol. 113, pp. 18--25, 2018.
 
 \bibitem{zaharia2016apache}
-M.~Zaharia, R.~S. Xin, P.~Wendell, T.~Das, M.~Armbrust, A.~Dave, X.~Meng,
-  J.~Rosen, S.~Venkataraman, M.~J. Franklin, A.~Ghodsi, J.~Gonzalez,
-  S.~Shenker, and I.~Stoica, ``{A}pache {S}park: A unified engine for big data
-  processing,'' \emph{Communications of the ACM}, vol.~59, no.~11, pp. 56--65,
-  2016.
+M.~Zaharia, R.~S. Xin, P.~Wendell, T.~Das, M.~Armbrust, A.~Dave, X.~Meng, J.~Rosen, S.~Venkataraman, M.~J. Franklin, A.~Ghodsi, J.~Gonzalez, S.~Shenker, and I.~Stoica, ``{A}pache {S}park: A unified engine for big data processing,'' \emph{Communications of the ACM}, vol.~59, no.~11, pp. 56--65, 2016.
 
 \bibitem{meng2016mllib}
-X.~Meng, J.~Bradley, B.~Yavuz, E.~Sparks, S.~Venkataraman, D.~Liu, J.~Freeman,
-  D.~Tsai, M.~Amde, S.~Owen \emph{et~al.}, ``{MLlib}: Machine learning in
-  {A}pache {S}park,'' \emph{Journal of Machine Learning Research}, vol.~17,
-  no.~34, pp. 1--7, 2016.
+X.~Meng, J.~Bradley, B.~Yavuz, E.~Sparks, S.~Venkataraman, D.~Liu, J.~Freeman, D.~Tsai, M.~Amde, S.~Owen \emph{et~al.}, ``{MLlib}: Machine learning in {A}pache {S}park,'' \emph{Journal of Machine Learning Research}, vol.~17, no.~34, pp. 1--7, 2016.
 
 \bibitem{miccibarreca2001preprocessing}
-D.~Micci-Barreca, ``A preprocessing scheme for high-cardinality categorical
-  attributes in classification and prediction problems,'' \emph{ACM SIGKDD
-  Explorations Newsletter}, vol.~3, no.~1, pp. 27--32, 2001.
+D.~Micci-Barreca, ``A preprocessing scheme for high-cardinality categorical attributes in classification and prediction problems,'' \emph{ACM SIGKDD Explorations Newsletter}, vol.~3, no.~1, pp. 27--32, 2001.
 
 \bibitem{gutierrez2017eruption}
-J.~Guti{\'e}rrez, J.~C. Garc{\'\i}a-Palomares, G.~Romanillos, and M.~H.
-  Salas-Olmedo, ``The eruption of {A}irbnb in tourist cities: Comparing spatial
-  patterns of hotels and peer-to-peer accommodation in {B}arcelona,''
-  \emph{Tourism Management}, vol.~62, pp. 278--291, 2017.
+J.~Guti{\'e}rrez, J.~C. Garc{\'\i}a-Palomares, G.~Romanillos, and M.~H. Salas-Olmedo, ``The eruption of {A}irbnb in tourist cities: Comparing spatial patterns of hotels and peer-to-peer accommodation in {B}arcelona,'' \emph{Tourism Management}, vol.~62, pp. 278--291, 2017.
 
 \bibitem{cocolagant2018tourism}
-A.~Cocola-Gant, ``Tourism gentrification,'' in \emph{Handbook of Gentrification
-  Studies}.\hskip 1em plus 0.5em minus 0.4em\relax Edward Elgar Publishing,
-  2018.
+A.~Cocola-Gant, ``Tourism gentrification,'' in \emph{Handbook of Gentrification Studies}.\hskip 1em plus 0.5em minus 0.4em\relax Edward Elgar Publishing, 2018.
 
 \bibitem{breiman2001random}
-L.~Breiman, ``Random forests,'' \emph{Machine learning}, vol.~45, no.~1, pp.
-  5--32, 2001.
+L.~Breiman, ``Random forests,'' \emph{Machine learning}, vol.~45, no.~1, pp. 5--32, 2001.
 
 \bibitem{friedman2001greedy}
-J.~H. Friedman, ``Greedy function approximation: A gradient boosting machine,''
-  \emph{Annals of Statistics}, vol.~29, no.~5, pp. 1189--1232, 2001.
+J.~H. Friedman, ``Greedy function approximation: A gradient boosting machine,'' \emph{Annals of Statistics}, vol.~29, no.~5, pp. 1189--1232, 2001.
 
 \end{thebibliography}
