@@ -1,4 +1,5 @@
 """Q6 — Pearson correlation between reviews_per_month and price per neighbourhood."""
+
 from __future__ import annotations
 
 from pyspark.sql import DataFrame, SparkSession
@@ -9,14 +10,12 @@ from ..utils.io import read_parquet
 
 
 def run(spark: SparkSession) -> DataFrame:
-    listings = (
-        read_parquet(spark, PROCESSED_DIR / "listings")
-        .filter(F.col("reviews_per_month").isNotNull())
+    listings = read_parquet(spark, PROCESSED_DIR / "listings").filter(
+        F.col("reviews_per_month").isNotNull()
     )
 
     return (
-        listings
-        .groupBy("city", "neighbourhood_group_cleansed", "neighbourhood_cleansed")
+        listings.groupBy("city", "neighbourhood_group_cleansed", "neighbourhood_cleansed")
         .agg(
             F.corr("reviews_per_month", "price").alias("corr_rpm_price"),
             F.count("id").alias("n_listings"),

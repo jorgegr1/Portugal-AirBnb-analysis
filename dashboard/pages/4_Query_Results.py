@@ -1,6 +1,6 @@
 import streamlit as st
-
 from _shared import load_query_result
+
 from egd_airbnb.queries.registry import DESCRIPTIONS
 
 st.title("Query results")

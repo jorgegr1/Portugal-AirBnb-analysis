@@ -1,7 +1,8 @@
 """Definitions of the workloads we time."""
+
 from __future__ import annotations
 
-from typing import Callable
+from collections.abc import Callable
 
 from pyspark.sql import SparkSession
 

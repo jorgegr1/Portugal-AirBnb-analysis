@@ -2,6 +2,7 @@
 
 estimated_revenue_365 = price × (365 − availability_365) is derived during cleaning.
 """
+
 from __future__ import annotations
 
 from pyspark.sql import DataFrame, SparkSession, Window
@@ -14,8 +15,7 @@ from ..utils.io import read_parquet
 def run(spark: SparkSession) -> DataFrame:
     listings = read_parquet(spark, PROCESSED_DIR / "listings")
     agg = (
-        listings
-        .filter(F.col("estimated_revenue_365").isNotNull())
+        listings.filter(F.col("estimated_revenue_365").isNotNull())
         .groupBy("city", "neighbourhood_group_cleansed", "neighbourhood_cleansed")
         .agg(
             F.sum("estimated_revenue_365").alias("total_estimated_revenue"),

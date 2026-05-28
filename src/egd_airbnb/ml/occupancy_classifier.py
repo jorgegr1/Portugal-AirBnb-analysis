@@ -6,13 +6,14 @@ Leaky features excluded:
   - booked_nights_365 (= 365 - availability_365)
   - estimated_revenue_365 (uses booked_nights_365)
 """
+
 from __future__ import annotations
 
 import json
 
 from pyspark.ml import Pipeline, PipelineModel
 from pyspark.ml.classification import LogisticRegression, RandomForestClassifier
-from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 
 from ..config import MODELS_DIR, PROCESSED_DIR, RESULTS_DIR
@@ -27,20 +28,30 @@ from .features import (
 
 # Columns that would leak the target (derived from availability_365).
 LEAK = [
-    "availability_30", "availability_60", "availability_90", "availability_365",
-    "occupancy_rate",        # engineered from availability_365
-    "booked_nights_365",     # engineered from availability_365
-    "estimated_revenue_365", # uses booked_nights_365
+    "availability_30",
+    "availability_60",
+    "availability_90",
+    "availability_365",
+    "occupancy_rate",  # engineered from availability_365
+    "booked_nights_365",  # engineered from availability_365
+    "estimated_revenue_365",  # uses booked_nights_365
 ]
 
 ALGOS = {
     "logreg": lambda wc: LogisticRegression(
-        featuresCol="features", labelCol="label", maxIter=100,
-        weightCol=wc, family="binomial",
+        featuresCol="features",
+        labelCol="label",
+        maxIter=100,
+        weightCol=wc,
+        family="binomial",
     ),
     "rf": lambda wc: RandomForestClassifier(
-        featuresCol="features", labelCol="label",
-        numTrees=150, maxDepth=12, seed=42, weightCol=wc,
+        featuresCol="features",
+        labelCol="label",
+        numTrees=150,
+        maxDepth=12,
+        seed=42,
+        weightCol=wc,
     ),
 }
 
@@ -57,10 +68,10 @@ def train(spark: SparkSession, algo: str = "rf", sample: float | None = None) ->
     # Feature engineering (uses train_stats for target encoding).
     train_stats = compute_train_stats(train_raw)
     train_df = select_and_fill(engineer_features(train_raw, train_stats), leak_cols=LEAK)
-    test_df  = select_and_fill(engineer_features(test_raw,  train_stats), leak_cols=LEAK)
+    test_df = select_and_fill(engineer_features(test_raw, train_stats), leak_cols=LEAK)
 
     train_df = train_df.withColumn("label", F.col("is_high_occupancy").cast("double"))
-    test_df  = test_df.withColumn("label",  F.col("is_high_occupancy").cast("double"))
+    test_df = test_df.withColumn("label", F.col("is_high_occupancy").cast("double"))
 
     # Class-imbalance weighting.
     base_rate = float(train_df.agg(F.avg("label")).first()[0])
@@ -68,18 +79,22 @@ def train(spark: SparkSession, algo: str = "rf", sample: float | None = None) ->
     if base_rate < 0.35 or base_rate > 0.65:
         train_df = train_df.withColumn(
             "weight",
-            F.when(F.col("label") == 1.0, 1.0 / base_rate)
-             .otherwise(1.0 / (1.0 - base_rate)),
+            F.when(F.col("label") == 1.0, 1.0 / base_rate).otherwise(1.0 / (1.0 - base_rate)),
         )
         test_df = test_df.withColumn("weight", F.lit(1.0))
         weight_col = "weight"
 
     from .features import CATEGORICAL_FEATURES, NUMERIC_FEATURES
+
     avail_num = [c for c in NUMERIC_FEATURES if c in train_df.columns]
     avail_cat = [c for c in CATEGORICAL_FEATURES if c in train_df.columns]
     estimator = ALGOS[algo](weight_col if weight_col else None)
     # Ensure weightCol is not passed as None (causes NPE in PySpark JVM).
-    if weight_col is None and hasattr(estimator, "weightCol") and estimator.isDefined(estimator.weightCol):
+    if (
+        weight_col is None
+        and hasattr(estimator, "weightCol")
+        and estimator.isDefined(estimator.weightCol)
+    ):
         estimator.clear(estimator.weightCol)
     stages = build_feature_stages(categorical=avail_cat, numeric=avail_num) + [estimator]
     model: PipelineModel = Pipeline(stages=stages).fit(train_df)
@@ -90,7 +105,7 @@ def train(spark: SparkSession, algo: str = "rf", sample: float | None = None) ->
         "algo": algo,
         "base_rate": base_rate,
         "n_train": train_raw.count(),
-        "n_test":  test_raw.count(),
+        "n_test": test_raw.count(),
         "metrics": metrics,
     }
 
@@ -104,8 +119,8 @@ def train(spark: SparkSession, algo: str = "rf", sample: float | None = None) ->
     nb_pd = train_stats["nb_stats"].toPandas()
     inference_stats = {
         "global_mean_log_price": train_stats["global_mean_log_price"],
-        "global_mean_count":     train_stats["global_mean_count"],
-        "neighbourhood_stats":   nb_pd.set_index("neighbourhood").to_dict(orient="index"),
+        "global_mean_count": train_stats["global_mean_count"],
+        "neighbourhood_stats": nb_pd.set_index("neighbourhood").to_dict(orient="index"),
     }
     (MODELS_DIR / f"occupancy_{algo}_inference_stats.json").write_text(
         json.dumps(inference_stats, indent=2)

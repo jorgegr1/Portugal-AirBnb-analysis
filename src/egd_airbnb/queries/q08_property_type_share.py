@@ -1,4 +1,5 @@
 """Q8 — Room-type market share per city (entire home / private room / hotel / shared)."""
+
 from __future__ import annotations
 
 from pyspark.sql import DataFrame, SparkSession

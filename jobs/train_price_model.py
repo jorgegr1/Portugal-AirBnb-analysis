@@ -1,4 +1,5 @@
 """Train one or all price-regression algorithms."""
+
 from __future__ import annotations
 
 import argparse
@@ -10,8 +11,10 @@ from egd_airbnb.spark_session import get_spark
 
 def main() -> None:
     p = argparse.ArgumentParser()
-    p.add_argument("--algo",   default="all", help=f"one of {list(ALGOS)} or 'all'")
-    p.add_argument("--sample", type=float, default=None, help="Optional sampling fraction (0,1] for quick runs")
+    p.add_argument("--algo", default="all", help=f"one of {list(ALGOS)} or 'all'")
+    p.add_argument(
+        "--sample", type=float, default=None, help="Optional sampling fraction (0,1] for quick runs"
+    )
     args = p.parse_args()
 
     ensure_dirs()

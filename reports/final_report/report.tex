@@ -224,44 +224,45 @@ Table~\ref{tab:importance} shows the top ten features for the GBT price model, a
 \section{Performance and Scalability}
 
 \subsection{Workloads}
-We select two workloads that exercise different bottlenecks:
+We select five workloads that exercise different bottlenecks:
 \begin{itemize}
   \item \textbf{Q2 seasonality} --- shuffle-heavy: joins the 23.5\,M-row calendar with the 53\,K-row listings table and aggregates to (city, year, month);
-  \item \textbf{RF price training} --- CPU- and memory-heavy: 100 trees of depth 8 over the engineered training set ($n=42{,}666$), the most demanding model fit in our pipeline.
+  \item \textbf{RF price training} --- CPU- and memory-heavy: random-forest regression over the engineered listings table;
+  \item \textbf{Review demand} --- joins reviews with listings and aggregates monthly review volume by price band and room type;
+  \item \textbf{Calendar revenue} --- computes booked-day revenue proxies per neighbourhood and month;
+  \item \textbf{Full pipeline} --- combines calendar, listings and reviews into a monthly listing-level demand table.
 \end{itemize}
 
 \subsection{Methodology}
-Each workload is timed three times per configuration; we report the median wall-clock seconds. Spark stage metrics and shuffle byte counts are collected via \texttt{spark.sparkContext.statusTracker()}. Speedup is defined as $S(n) = T(1)/T(n)$ and parallel efficiency as $E(n) = S(n)/n$.
+Each workload is timed three times per configuration; we report the median wall-clock seconds. The first run is often slower because it includes cold reads from GCS and Spark initialisation effects, hence the median is more representative than the mean. Speedup is defined as $S(n) = T(1)/T(n)$ and parallel efficiency as $E(n) = S(n)/n$.
 
 \subsection{Configurations}
-Two platforms are compared:
-\begin{enumerate}
-  \item \textbf{Local}: thread-level scaling, \texttt{local[1]}, \texttt{local[2]}, \texttt{local[4]}, \texttt{local[8]} on a MacBook Pro;
-  \item \textbf{Google Dataproc}: cluster scaling with 1, 2 and 4 \texttt{n2-standard-4} workers (image 2.2-debian12, Spark 3.5). Data staged to GCS in the same Parquet layout as the local run.
-\end{enumerate}
+We evaluate Google Dataproc cluster scaling with 1, 2 and 4 workers (image 2.2-debian12, Spark 3.5). Data is staged to GCS in the same Parquet layout as the local pipeline. The raw Dataproc logs are stored under \texttt{reports/benchmarks/}; a parser materialises the compact summary used below as \texttt{reports/benchmarks/summary.csv}.
 
-Driver scripts: \texttt{src/egd\_airbnb/} \texttt{benchmark/} and \texttt{jobs/benchmark.py} for local; the four shell scripts in \texttt{dataproc/} (\texttt{create\_cluster}, \texttt{submit\_job}, \texttt{delete\_cluster}, \texttt{init}) for cloud.
+Driver scripts: \texttt{jobs/benchmark\_dataproc.py} executes the cloud workloads; \texttt{jobs/summarize\_benchmarks.py} parses the job logs into the CSV summary.
 
 \subsection{Results}
-Table~\ref{tab:bench} presents the placeholder structure to be populated in the final revision once the Dataproc runs complete.
+Table~\ref{tab:bench} shows median wall-clock seconds for each worker count, plus speedup and efficiency at 4 workers relative to the single-worker baseline.
 
 \begin{table}[H]
-\caption{Wall-clock seconds (median over 3 runs) per configuration}
+\caption{Dataproc benchmark results: median wall-clock seconds over 3 runs}
 \label{tab:bench}
 \centering
-\begin{tabular}{llrrr}
+\small
+\begin{tabular}{lrrrrr}
 \toprule
-\textbf{Workload} & \textbf{Platform} & 1 & 2 & 4 \\
+\textbf{Workload} & \textbf{1w} & \textbf{2w} & \textbf{4w} & \textbf{$S_4$} & \textbf{$E_4$} \\
 \midrule
-Q2 seasonality   & local      & -- & -- & -- \\
-                 & Dataproc   & -- & -- & -- \\
-RF price train   & local      & -- & -- & -- \\
-                 & Dataproc   & -- & -- & -- \\
+Q2 seasonality   & 22.40 & 22.48 & 17.09 & 1.31 & 0.33 \\
+RF price train   & 60.53 & 39.69 & 40.62 & 1.49 & 0.37 \\
+Review demand    & 36.94 & 18.69 & 15.45 & 2.39 & 0.60 \\
+Calendar revenue & 26.54 & 16.64 & 17.35 & 1.53 & 0.38 \\
+Full pipeline    & 40.18 & 22.94 & 22.75 & 1.77 & 0.44 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-We expect Q2 to exhibit near-linear speedup up to 4 workers on Dataproc (shuffle dominates and Spark partitions the join naturally), while RF training is more variable due to the broadcast overhead of the growing tree ensemble. Final numbers, speedup curves and efficiency analysis will appear in the camera-ready revision.
+The clearest scaling appears in the review-demand workload ($S_4=2.39$), which benefits from distributing the reviews--listings join and subsequent aggregation. Q2 seasonality and RF training improve more modestly: both show cold-start and coordination overheads that become visible at this dataset size, and the RF workload in particular stops improving beyond two workers. Overall, Dataproc provides consistent gains over the single-worker baseline, but efficiency declines at four workers for the smaller or more coordination-heavy jobs.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Results and Discussion}

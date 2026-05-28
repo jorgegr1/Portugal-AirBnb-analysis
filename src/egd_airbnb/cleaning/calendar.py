@@ -1,4 +1,5 @@
 """Clean the unified calendar DataFrame."""
+
 from __future__ import annotations
 
 from pyspark.sql import DataFrame
@@ -33,10 +34,9 @@ def clean_calendar(df: DataFrame) -> DataFrame:
             out = out.withColumn(c, F.col(c).cast(T.IntegerType()))
 
     out = (
-        out
-        .withColumn("year",  F.year("date"))
+        out.withColumn("year", F.year("date"))
         .withColumn("month", F.month("date"))
-        .withColumn("dow",   F.dayofweek("date"))
+        .withColumn("dow", F.dayofweek("date"))
     )
     return out
 

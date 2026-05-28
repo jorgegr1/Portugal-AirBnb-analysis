@@ -1,4 +1,5 @@
 """Shared helpers for dashboard pages — caching, paths, lazy Spark."""
+
 from __future__ import annotations
 
 import json
@@ -9,7 +10,7 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-from egd_airbnb.config import MODELS_DIR, PROCESSED_DIR, RESULTS_DIR
+from egd_airbnb.config import BENCH_DIR, MODELS_DIR, PROCESSED_DIR, RESULTS_DIR
 
 
 @st.cache_data(show_spinner="Loading processed listings…")
@@ -37,9 +38,18 @@ def load_query_result(query_id: str) -> pd.DataFrame:
     return pd.read_parquet(path)
 
 
+@st.cache_data(show_spinner=False)
+def load_benchmark_summary() -> pd.DataFrame:
+    path = BENCH_DIR / "summary.csv"
+    if not path.exists():
+        return pd.DataFrame()
+    return pd.read_csv(path)
+
+
 @lru_cache(maxsize=1)
 def get_dashboard_spark():
     from egd_airbnb.spark_session import get_spark
+
     return get_spark("dashboard", master="local[2]")
 
 
@@ -101,23 +111,29 @@ def engineer_row(
     else:
         min_nights_cat = "long_stay"
 
-    occupancy_rate   = 1.0 - availability_365 / 365.0
-    log_reviews      = math.log1p(number_of_reviews)
+    occupancy_rate = 1.0 - availability_365 / 365.0
+    log_reviews = math.log1p(number_of_reviews)
     log_host_listings = math.log1p(calculated_host_listings_count)
-    rar              = number_of_reviews_ltm / (number_of_reviews + 1.0)
+    rar = number_of_reviews_ltm / (number_of_reviews + 1.0)
 
     nb_stats = inference_stats.get("neighbourhood_stats", {}).get(neighbourhood, {})
-    nb_mean  = nb_stats.get("neighbourhood_mean_log_price",
-                            inference_stats.get("global_mean_log_price", 4.6))
-    nb_count = nb_stats.get("neighbourhood_listing_count",
-                            inference_stats.get("global_mean_count", 50.0))
+    nb_mean = nb_stats.get(
+        "neighbourhood_mean_log_price", inference_stats.get("global_mean_log_price", 4.6)
+    )
+    nb_count = nb_stats.get(
+        "neighbourhood_listing_count", inference_stats.get("global_mean_count", 50.0)
+    )
 
     return {
         # categorical
-        "city": city, "room_type": room_type,
-        "neighbourhood_group": neighbourhood_group, "neighbourhood": neighbourhood,
-        "min_nights_cat": min_nights_cat, "property_type": property_type,
-        "host_is_superhost": host_is_superhost, "instant_bookable": instant_bookable,
+        "city": city,
+        "room_type": room_type,
+        "neighbourhood_group": neighbourhood_group,
+        "neighbourhood": neighbourhood,
+        "min_nights_cat": min_nights_cat,
+        "property_type": property_type,
+        "host_is_superhost": host_is_superhost,
+        "instant_bookable": instant_bookable,
         # raw numeric
         "minimum_nights": float(minimum_nights),
         "number_of_reviews": float(number_of_reviews),
@@ -125,9 +141,12 @@ def engineer_row(
         "reviews_per_month": float(reviews_per_month),
         "calculated_host_listings_count": float(calculated_host_listings_count),
         "availability_365": float(availability_365),
-        "latitude": float(latitude), "longitude": float(longitude),
-        "accommodates": float(accommodates), "bedrooms": float(bedrooms),
-        "beds": float(beds), "bathrooms": float(bathrooms),
+        "latitude": float(latitude),
+        "longitude": float(longitude),
+        "accommodates": float(accommodates),
+        "bedrooms": float(bedrooms),
+        "beds": float(beds),
+        "bathrooms": float(bathrooms),
         "review_scores_rating": float(review_scores_rating),
         "review_scores_cleanliness": float(review_scores_cleanliness),
         "review_scores_location": float(review_scores_location),

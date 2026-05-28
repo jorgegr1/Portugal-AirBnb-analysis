@@ -1,9 +1,13 @@
-.PHONY: help install ingest clean queries ml ml-price ml-occupancy bench bench-local dash test lint format clean-data
+.PHONY: help install ingest clean queries ml ml-price ml-occupancy bench bench-local bench-summary dash test lint format clean-data
 
-PYTHON ?= python
+PYTHON ?= python3
 CITIES ?= porto,lisbon
 QUERY  ?= all
 CORES  ?= 4
+JAVA_HOME ?= $(shell /usr/libexec/java_home -v 17 2>/dev/null || printf "%s/libexec/openjdk.jdk/Contents/Home" "$$(brew --prefix openjdk@17 2>/dev/null)")
+export PYTHONPATH := src$(if $(PYTHONPATH),:$(PYTHONPATH))
+export JAVA_HOME
+export PATH := $(JAVA_HOME)/bin:$(PATH)
 
 help:
 	@echo "Targets:"
@@ -16,6 +20,7 @@ help:
 	@echo "  ml-price     Train price regression only"
 	@echo "  ml-occupancy Train occupancy classifier only"
 	@echo "  bench-local  Run benchmark workloads at local[1,2,4,8]"
+	@echo "  bench-summary Parse Dataproc benchmark logs -> reports/benchmarks/summary.csv"
 	@echo "  dash         streamlit run dashboard/app.py"
 	@echo "  test         pytest"
 	@echo "  lint         ruff check"
@@ -50,17 +55,20 @@ bench-local:
 	$(PYTHON) -m jobs.benchmark --platform local --workload query_seasonality --runs 3
 	$(PYTHON) -m jobs.benchmark --platform local --workload train_rf --runs 3
 
+bench-summary:
+	$(PYTHON) -m jobs.summarize_benchmarks
+
 dash:
-	streamlit run dashboard/app.py
+	$(PYTHON) -m streamlit run dashboard/app.py
 
 test:
-	pytest
+	$(PYTHON) -m pytest
 
 lint:
-	ruff check src tests jobs dashboard
+	$(PYTHON) -m ruff check src tests jobs dashboard
 
 format:
-	ruff format src tests jobs dashboard
+	$(PYTHON) -m ruff format src tests jobs dashboard
 
 clean-data:
 	@echo "Removing data/interim and data/processed (data/raw/ untouched)"

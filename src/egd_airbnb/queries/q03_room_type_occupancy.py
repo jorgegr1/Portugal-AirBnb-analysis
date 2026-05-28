@@ -1,4 +1,5 @@
 """Q3 — Average availability (lower = higher demand) by room_type × city."""
+
 from __future__ import annotations
 
 from pyspark.sql import DataFrame, SparkSession
@@ -11,8 +12,7 @@ from ..utils.io import read_parquet
 def run(spark: SparkSession) -> DataFrame:
     listings = read_parquet(spark, PROCESSED_DIR / "listings")
     return (
-        listings
-        .filter(F.col("availability_365").isNotNull())
+        listings.filter(F.col("availability_365").isNotNull())
         .groupBy("city", "room_type")
         .agg(
             F.avg("availability_365").alias("avg_availability_365"),
