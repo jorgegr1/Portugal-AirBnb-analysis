@@ -11,9 +11,8 @@ Price in the detailed CSV uses "$X.XX" format and replaces the summary integer.
 Join is performed on `id`; cities without a detailed file are kept as-is
 (left join — no rows are lost).
 """
-from __future__ import annotations
 
-import json
+from __future__ import annotations
 
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as F
@@ -25,23 +24,27 @@ from ..utils.io import read_parquet, write_parquet
 # ── Column lists ─────────────────────────────────────────────────────────────
 
 _SUMMARY_NUMERIC = [
-    "latitude", "longitude", "minimum_nights",
-    "number_of_reviews", "reviews_per_month",
-    "calculated_host_listings_count", "availability_365",
+    "latitude",
+    "longitude",
+    "minimum_nights",
+    "number_of_reviews",
+    "reviews_per_month",
+    "calculated_host_listings_count",
+    "availability_365",
     "number_of_reviews_ltm",
 ]
 
 # Columns to pull from the detailed CSV (beyond what summary provides).
 _DETAIL_COLS = [
     "id",
-    "price",                    # "$X.XX" format — replaces summary price
+    "price",  # "$X.XX" format — replaces summary price
     "accommodates",
     "bedrooms",
     "beds",
     "bathrooms",
     "property_type",
-    "host_is_superhost",        # "t"/"f"
-    "amenities",                # JSON array string → amenity_count
+    "host_is_superhost",  # "t"/"f"
+    "amenities",  # JSON array string → amenity_count
     "review_scores_rating",
     "review_scores_cleanliness",
     "review_scores_location",
@@ -55,6 +58,7 @@ _HIGH_OCCUPANCY_THRESHOLD = 0.70
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
+
 
 def _parse_dollar_price(col: str):
     return F.regexp_replace(F.col(col), r"[\$,]", "").cast(T.DoubleType())
@@ -71,18 +75,20 @@ def _count_amenities(col: str):
 
 # ── Detailed enrichment ──────────────────────────────────────────────────────
 
+
 def _read_detailed(spark: SparkSession, city_key: str) -> DataFrame | None:
     path = RAW_DIR / CITIES[city_key] / "listings-detailed.csv"
     if not path.exists():
         return None
-    available = [c for c in _DETAIL_COLS
-                 if c in spark.read.option("header", True).csv(str(path)).columns]
+    available = [
+        c for c in _DETAIL_COLS if c in spark.read.option("header", True).csv(str(path)).columns
+    ]
     df = (
-        spark.read
-        .option("header", True)
+        spark.read.option("header", True)
         .option("inferSchema", False)
         .option("multiLine", True)
-        .option("escape", '"').option("quote", '"')
+        .option("escape", '"')
+        .option("quote", '"')
         .csv(str(path))
         .select(*available)
         .withColumn("city", F.lit(city_key))
@@ -95,10 +101,18 @@ def _read_detailed(spark: SparkSession, city_key: str) -> DataFrame | None:
         df = df.withColumn("instant_bookable", _parse_bool("instant_bookable"))
     if "amenities" in df.columns:
         df = df.withColumn("amenity_count", _count_amenities("amenities")).drop("amenities")
-    for c in ["accommodates","bedrooms","beds","bathrooms",
-              "review_scores_rating","review_scores_cleanliness",
-              "review_scores_location","review_scores_value",
-              "estimated_revenue_l365d","estimated_occupancy_l365d"]:
+    for c in [
+        "accommodates",
+        "bedrooms",
+        "beds",
+        "bathrooms",
+        "review_scores_rating",
+        "review_scores_cleanliness",
+        "review_scores_location",
+        "review_scores_value",
+        "estimated_revenue_l365d",
+        "estimated_occupancy_l365d",
+    ]:
         if c in df.columns:
             df = df.withColumn(c, F.col(c).cast(T.DoubleType()))
     return df
@@ -126,6 +140,7 @@ def _build_detailed_enrichment(spark: SparkSession) -> DataFrame | None:
 
 # ── Main cleaning function ───────────────────────────────────────────────────
 
+
 def clean_listings(df: DataFrame, detailed: DataFrame | None = None) -> DataFrame:
     out = df
 
@@ -151,7 +166,7 @@ def clean_listings(df: DataFrame, detailed: DataFrame | None = None) -> DataFram
     # Enrich with detailed CSV (left join on id).
     if detailed is not None:
         out = out.join(
-            detailed.drop("city"),   # city already present from summary
+            detailed.drop("city"),  # city already present from summary
             on="id",
             how="left",
         )
@@ -175,7 +190,8 @@ def clean_listings(df: DataFrame, detailed: DataFrame | None = None) -> DataFram
     if "availability_365" in out.columns:
         out = out.withColumn(
             "is_high_occupancy",
-            (F.lit(1.0) - F.col("availability_365") / F.lit(365.0)) > F.lit(_HIGH_OCCUPANCY_THRESHOLD),
+            (F.lit(1.0) - F.col("availability_365") / F.lit(365.0))
+            > F.lit(_HIGH_OCCUPANCY_THRESHOLD),
         )
         out = out.withColumn("booked_nights_365", F.lit(365.0) - F.col("availability_365"))
         if "price" in out.columns:

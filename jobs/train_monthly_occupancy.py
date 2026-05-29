@@ -1,4 +1,5 @@
 """Train the month-aware occupancy model."""
+
 from __future__ import annotations
 
 import argparse

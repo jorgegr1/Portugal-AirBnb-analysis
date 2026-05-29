@@ -2,6 +2,7 @@
 
 estimated_revenue_365 = price × (365 − availability_365) is derived during cleaning.
 """
+
 from __future__ import annotations
 
 from pyspark.sql import DataFrame, SparkSession, Window

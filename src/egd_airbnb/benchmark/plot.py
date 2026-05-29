@@ -1,4 +1,5 @@
 """Speedup / efficiency plots for the benchmark CSVs."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -12,9 +13,9 @@ def _summary(csv_path: Path) -> pd.DataFrame:
     df = pd.read_csv(csv_path)
     return (
         df.groupby(["platform", "parallelism"])["wall_secs"]
-          .agg(["median", "min", "max", "count"])
-          .reset_index()
-          .sort_values(["platform", "parallelism"])
+        .agg(["median", "min", "max", "count"])
+        .reset_index()
+        .sort_values(["platform", "parallelism"])
     )
 
 
@@ -50,9 +51,17 @@ def plot_workload(workload: str) -> list[Path]:
     fig, ax = plt.subplots(figsize=(6, 4))
     for platform, sub in summary.groupby("platform"):
         baseline = sub.loc[sub["parallelism"] == sub["parallelism"].min(), "median"].iloc[0]
-        sub = sub.assign(speedup=baseline / sub["median"], efficiency=lambda d: d["speedup"] / d["parallelism"])
+        sub = sub.assign(
+            speedup=baseline / sub["median"], efficiency=lambda d: d["speedup"] / d["parallelism"]
+        )
         ax.plot(sub["parallelism"], sub["speedup"], marker="o", label=f"{platform} speedup")
-        ax.plot(sub["parallelism"], sub["efficiency"], marker="x", linestyle="--", label=f"{platform} efficiency")
+        ax.plot(
+            sub["parallelism"],
+            sub["efficiency"],
+            marker="x",
+            linestyle="--",
+            label=f"{platform} efficiency",
+        )
     ax.set_xlabel("Parallelism")
     ax.set_ylabel("Speedup / Efficiency")
     ax.set_title(f"{workload}: speedup & efficiency")

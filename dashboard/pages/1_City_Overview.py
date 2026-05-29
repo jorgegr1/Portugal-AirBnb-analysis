@@ -1,5 +1,4 @@
 import streamlit as st
-
 from _shared import load_listings, load_neighbourhoods
 
 st.title("City overview")
@@ -12,9 +11,11 @@ sub = listings[listings["city"] == city]
 
 # Headline metrics.
 c1, c2, c3, c4 = st.columns(4)
-c1.metric("Listings",      f"{len(sub):,}")
-c2.metric("Hosts",         f"{sub['host_id'].nunique():,}")
-c3.metric("Median price (€)", f"{sub['price'].median():.0f}" if sub["price"].notna().any() else "N/A")
+c1.metric("Listings", f"{len(sub):,}")
+c2.metric("Hosts", f"{sub['host_id'].nunique():,}")
+c3.metric(
+    "Median price (€)", f"{sub['price'].median():.0f}" if sub["price"].notna().any() else "N/A"
+)
 c4.metric("Multi-listing host share", f"{(sub['host_type'] == 'multi').mean() * 100:.1f}%")
 
 st.divider()

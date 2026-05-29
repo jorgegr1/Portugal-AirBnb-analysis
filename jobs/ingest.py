@@ -1,4 +1,5 @@
 """Read data/raw/ CSVs → data/interim/ unified Parquet (partitioned by city)."""
+
 from __future__ import annotations
 
 import argparse

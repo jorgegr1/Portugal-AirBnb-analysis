@@ -3,6 +3,7 @@
 Thresholds adjusted down from old detailed format because the summary dataset
 prices are plain integers (already clean) and the distribution is different.
 """
+
 from __future__ import annotations
 
 from pyspark.sql import DataFrame, SparkSession

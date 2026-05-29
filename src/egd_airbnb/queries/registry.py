@@ -1,7 +1,8 @@
 """Registry: query name → callable returning a DataFrame."""
+
 from __future__ import annotations
 
-from typing import Callable
+from collections.abc import Callable
 
 from pyspark.sql import DataFrame, SparkSession
 

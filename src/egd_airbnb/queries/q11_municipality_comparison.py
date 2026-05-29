@@ -4,6 +4,7 @@ The neighbourhoods.csv provides the full municipality → neighbourhood hierarch
 This query aggregates listings by neighbourhood_group (municipality) to compare
 Porto Metro vs Lisbon Metro sub-regions: listing density, price, and occupancy.
 """
+
 from __future__ import annotations
 
 from pyspark.sql import DataFrame, SparkSession

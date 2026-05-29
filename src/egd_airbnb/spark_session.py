@@ -1,4 +1,5 @@
 """Single entry point for building SparkSessions across jobs and notebooks."""
+
 from __future__ import annotations
 
 from pyspark.sql import SparkSession
@@ -6,7 +7,9 @@ from pyspark.sql import SparkSession
 from .config import DEFAULT_MASTER, SHUFFLE_PARTITIONS, SPARK_DRIVER_MEMORY
 
 
-def get_spark(app_name: str, master: str | None = None, *, extra_conf: dict | None = None) -> SparkSession:
+def get_spark(
+    app_name: str, master: str | None = None, *, extra_conf: dict | None = None
+) -> SparkSession:
     builder = (
         SparkSession.builder.appName(app_name)
         .master(master or DEFAULT_MASTER)

@@ -6,11 +6,11 @@ Two-phase approach:
   2. build_feature_stages() — returns the MLlib Pipeline stages
      (Indexer → OHE → Assembler → Scaler) that operate on the engineered frame.
 """
+
 from __future__ import annotations
 
 from pyspark.ml import Pipeline, PipelineModel
 from pyspark.ml.feature import (
-    Bucketizer,
     OneHotEncoder,
     StandardScaler,
     StringIndexer,
@@ -47,7 +47,7 @@ NUMERIC_FEATURES = [
     "log_host_listings",
     "recent_activity_ratio",
     "neighbourhood_listing_count",
-    "neighbourhood_mean_log_price",   # target encoding — no leakage if from train only
+    "neighbourhood_mean_log_price",  # target encoding — no leakage if from train only
 ]
 
 # Categorical features — neighbourhood replaced by target encoding above.
@@ -65,25 +65,22 @@ CATEGORICAL_FEATURES = [
 
 # ── Derived feature construction ────────────────────────────────────────────
 
+
 def compute_train_stats(train_df: DataFrame) -> dict:
     """Compute per-neighbourhood stats from the TRAINING set only (no leakage).
 
     Returns a dict of DataFrames to join onto any split.
     """
     # Target encoding: neighbourhood → mean log1p(price) on train.
-    nb_stats = (
-        train_df
-        .groupBy("neighbourhood")
-        .agg(
-            F.avg(F.log1p("price")).alias("neighbourhood_mean_log_price"),
-            F.count("id").alias("neighbourhood_listing_count"),
-        )
+    nb_stats = train_df.groupBy("neighbourhood").agg(
+        F.avg(F.log1p("price")).alias("neighbourhood_mean_log_price"),
+        F.count("id").alias("neighbourhood_listing_count"),
     )
     # Global fallback for unseen neighbourhoods (use overall mean).
-    global_mean = float(
-        train_df.agg(F.avg(F.log1p("price"))).first()[0]
+    global_mean = float(train_df.agg(F.avg(F.log1p("price"))).first()[0])
+    global_count = float(train_df.count()) / float(
+        train_df.select("neighbourhood").distinct().count()
     )
-    global_count = float(train_df.count()) / float(train_df.select("neighbourhood").distinct().count())
     return {
         "nb_stats": nb_stats,
         "global_mean_log_price": global_mean,
@@ -93,37 +90,37 @@ def compute_train_stats(train_df: DataFrame) -> dict:
 
 def engineer_features(df: DataFrame, train_stats: dict) -> DataFrame:
     """Add all engineered columns to df. Call with train_stats from training set."""
-    nb_stats    = train_stats["nb_stats"]
+    nb_stats = train_stats["nb_stats"]
     global_mean = train_stats["global_mean_log_price"]
-    global_cnt  = train_stats["global_mean_count"]
+    global_cnt = train_stats["global_mean_count"]
 
     out = df
 
     # 1. Occupancy rate (demand proxy from availability).
-    out = out.withColumn("occupancy_rate",
-        F.lit(1.0) - F.col("availability_365") / F.lit(365.0))
+    out = out.withColumn("occupancy_rate", F.lit(1.0) - F.col("availability_365") / F.lit(365.0))
 
     # 2. Log-scale review count (right-skewed distribution).
-    out = out.withColumn("log_reviews",     F.log1p(F.col("number_of_reviews")))
+    out = out.withColumn("log_reviews", F.log1p(F.col("number_of_reviews")))
     out = out.withColumn("log_host_listings", F.log1p(F.col("calculated_host_listings_count")))
 
     # 3. Recent activity ratio: % of reviews from last year.
-    out = out.withColumn("recent_activity_ratio",
-        F.col("number_of_reviews_ltm") / (F.col("number_of_reviews") + F.lit(1.0)))
+    out = out.withColumn(
+        "recent_activity_ratio",
+        F.col("number_of_reviews_ltm") / (F.col("number_of_reviews") + F.lit(1.0)),
+    )
 
     # 4. Minimum-nights bucket (hosts set this intentionally as a signal of guest type).
     out = out.withColumn(
         "min_nights_cat",
         F.when(F.col("minimum_nights") == 1, "one_night")
-         .when(F.col("minimum_nights").between(2, 3), "weekend")
-         .when(F.col("minimum_nights").between(4, 6), "week_short")
-         .otherwise("long_stay"),
+        .when(F.col("minimum_nights").between(2, 3), "weekend")
+        .when(F.col("minimum_nights").between(4, 6), "week_short")
+        .otherwise("long_stay"),
     )
 
     # 5. Neighbourhood target encoding (join from training stats).
     out = (
-        out
-        .join(nb_stats, on="neighbourhood", how="left")
+        out.join(nb_stats, on="neighbourhood", how="left")
         .withColumn(
             "neighbourhood_mean_log_price",
             F.coalesce(F.col("neighbourhood_mean_log_price"), F.lit(global_mean)),
@@ -149,11 +146,21 @@ def select_and_fill(
     (e.g. temporal features for the monthly occupancy model).
     """
     leak = set(leak_cols or [])
-    num  = [c for c in NUMERIC_FEATURES + (extra_numeric or [])
-            if c not in leak and c in df.columns]
-    cat  = [c for c in CATEGORICAL_FEATURES if c not in leak and c in df.columns]
-    keep = {c for c in ("id", "price", "is_high_occupancy", "is_high_demand_month",
-                        "monthly_occupancy_rate", "year", "month") if c in df.columns}
+    num = [c for c in NUMERIC_FEATURES + (extra_numeric or []) if c not in leak and c in df.columns]
+    cat = [c for c in CATEGORICAL_FEATURES if c not in leak and c in df.columns]
+    keep = {
+        c
+        for c in (
+            "id",
+            "price",
+            "is_high_occupancy",
+            "is_high_demand_month",
+            "monthly_occupancy_rate",
+            "year",
+            "month",
+        )
+        if c in df.columns
+    }
 
     out = df.select(*num, *cat, *keep)
 
@@ -169,14 +176,24 @@ def select_and_fill(
             out = out.withColumn(c, F.coalesce(F.col(c), F.lit("unknown")))
 
     fills = {
-        "minimum_nights": 1, "number_of_reviews": 0, "number_of_reviews_ltm": 0,
-        "reviews_per_month": 0.0, "calculated_host_listings_count": 1,
-        "recent_activity_ratio": 0.0, "occupancy_rate": 0.5,
+        "minimum_nights": 1,
+        "number_of_reviews": 0,
+        "number_of_reviews_ltm": 0,
+        "reviews_per_month": 0.0,
+        "calculated_host_listings_count": 1,
+        "recent_activity_ratio": 0.0,
+        "occupancy_rate": 0.5,
         # detailed cols — median-ish defaults
-        "accommodates": 2, "bedrooms": 1, "beds": 1, "bathrooms": 1.0,
-        "review_scores_rating": 4.7, "review_scores_cleanliness": 4.7,
-        "review_scores_location": 4.7, "review_scores_value": 4.5,
-        "amenity_count": 20, "estimated_occupancy_l365d": 0.0,
+        "accommodates": 2,
+        "bedrooms": 1,
+        "beds": 1,
+        "bathrooms": 1.0,
+        "review_scores_rating": 4.7,
+        "review_scores_cleanliness": 4.7,
+        "review_scores_location": 4.7,
+        "review_scores_value": 4.5,
+        "amenity_count": 20,
+        "estimated_occupancy_l365d": 0.0,
     }
     for c, v in fills.items():
         if c in out.columns:
@@ -186,6 +203,7 @@ def select_and_fill(
 
 # ── MLlib pipeline stages ───────────────────────────────────────────────────
 
+
 def build_feature_stages(
     categorical: list[str] | None = None,
     numeric: list[str] | None = None,
@@ -193,13 +211,10 @@ def build_feature_stages(
     cat = categorical or CATEGORICAL_FEATURES
     num = numeric or NUMERIC_FEATURES
 
-    indexers = [
-        StringIndexer(inputCol=c, outputCol=f"{c}_idx", handleInvalid="keep")
-        for c in cat
-    ]
+    indexers = [StringIndexer(inputCol=c, outputCol=f"{c}_idx", handleInvalid="keep") for c in cat]
     encoder = OneHotEncoder(
         inputCols=[f"{c}_idx" for c in cat],
-        outputCols=[f"{c}_oh"  for c in cat],
+        outputCols=[f"{c}_oh" for c in cat],
         handleInvalid="keep",
     )
     assembler = VectorAssembler(

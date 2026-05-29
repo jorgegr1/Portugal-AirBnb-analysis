@@ -1,4 +1,5 @@
 """Run one or all analytical queries and persist results to reports/results/qNN.parquet."""
+
 from __future__ import annotations
 
 import argparse
@@ -11,7 +12,9 @@ from egd_airbnb.spark_session import get_spark
 def main() -> None:
     p = argparse.ArgumentParser()
     p.add_argument("--query", default="all", help="qNN or 'all'")
-    p.add_argument("--csv", action="store_true", help="Also export a single-file CSV alongside the Parquet")
+    p.add_argument(
+        "--csv", action="store_true", help="Also export a single-file CSV alongside the Parquet"
+    )
     args = p.parse_args()
 
     ensure_dirs()
@@ -24,7 +27,9 @@ def main() -> None:
             out = RESULTS_DIR / f"{q}.parquet"
             df.write.mode("overwrite").parquet(str(out))
             if args.csv:
-                df.coalesce(1).write.mode("overwrite").option("header", True).csv(str(out.with_suffix(".csv")))
+                df.coalesce(1).write.mode("overwrite").option("header", True).csv(
+                    str(out.with_suffix(".csv"))
+                )
             print(f"[query] wrote {out}")
     finally:
         spark.stop()

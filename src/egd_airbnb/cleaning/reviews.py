@@ -1,4 +1,5 @@
 """Clean the unified reviews DataFrame."""
+
 from __future__ import annotations
 
 from pyspark.sql import DataFrame
@@ -10,9 +11,8 @@ from ..utils.io import read_parquet, write_parquet
 
 def clean_reviews(df: DataFrame) -> DataFrame:
     out = (
-        df
-        .withColumn("date", F.to_date("date"))
-        .withColumn("year",  F.year("date"))
+        df.withColumn("date", F.to_date("date"))
+        .withColumn("year", F.year("date"))
         .withColumn("month", F.month("date"))
     )
     # reviewer_id present in the detailed format but absent in the summary format.

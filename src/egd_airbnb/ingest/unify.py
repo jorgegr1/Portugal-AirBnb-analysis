@@ -8,6 +8,7 @@ Output layout (partitioned by city):
 Reference tables (not partitioned):
     data/interim/neighbourhoods/city=porto/...
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -15,7 +16,7 @@ from pathlib import Path
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as F
 
-from ..config import CITIES, DATASETS, INTERIM_DIR, REFERENCE_DATASETS, RAW_DIR
+from ..config import CITIES, DATASETS, INTERIM_DIR, RAW_DIR
 from ..utils.io import write_parquet
 
 
@@ -30,12 +31,11 @@ def _read_city_csv(spark: SparkSession, city_key: str, dataset: str) -> DataFram
     else:
         raise FileNotFoundError(f"Missing raw file: {path_csv} or {path_gz}")
     return (
-        spark.read
-        .option("header", True)
+        spark.read.option("header", True)
         .option("multiLine", True)
         .option("escape", '"')
         .option("quote", '"')
-        .option("inferSchema", False)      # types handled in cleaning/
+        .option("inferSchema", False)  # types handled in cleaning/
         .csv(str(path))
         .withColumn("city", F.lit(city_key))
     )

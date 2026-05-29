@@ -4,6 +4,7 @@ Calendar prices are null in the current snapshot, so we use the `available` flag
 as the demand signal. Low availability → high demand. We also enrich with the
 listing price to compute an estimated monthly revenue proxy.
 """
+
 from __future__ import annotations
 
 from pyspark.sql import DataFrame, SparkSession
@@ -20,23 +21,24 @@ def run(spark: SparkSession) -> DataFrame:
         .filter(F.col("date").isNotNull())
     )
     listings = read_parquet(spark, PROCESSED_DIR / "listings").select(
-        F.col("id").alias("listing_id"), "price", "room_type",
+        F.col("id").alias("listing_id"),
+        "price",
+        "room_type",
         F.col("city").alias("listing_city"),
     )
 
     joined = calendar.join(listings, on="listing_id", how="inner")
 
     return (
-        joined
-        .groupBy("city", "year", "month")
+        joined.groupBy("city", "year", "month")
         .agg(
-            F.avg((F.col("available") == True).cast("int")).alias("availability_rate"),
-            (F.lit(1.0) - F.avg((F.col("available") == True).cast("int"))).alias("occupancy_rate"),
+            F.avg(F.col("available").cast("int")).alias("availability_rate"),
+            (F.lit(1.0) - F.avg(F.col("available").cast("int"))).alias("occupancy_rate"),
             F.count("*").alias("n_calendar_days"),
             # Revenue proxy: listing price × booked days
-            F.sum(
-                F.when(F.col("available") == False, F.col("price")).otherwise(F.lit(0.0))
-            ).alias("estimated_revenue_proxy"),
+            F.sum(F.when(~F.col("available"), F.col("price")).otherwise(F.lit(0.0))).alias(
+                "estimated_revenue_proxy"
+            ),
         )
         .orderBy("city", "year", "month")
     )

@@ -1,6 +1,5 @@
 import pydeck as pdk
 import streamlit as st
-
 from _shared import load_listings
 
 st.title("Map view")
@@ -18,9 +17,12 @@ sub = sub[sub["price"] <= price_cap * 2]  # keep outliers visible but cap colour
 
 def _color(p: float) -> list[int]:
     q1, q2, q3 = sub["price"].quantile([0.25, 0.5, 0.75])
-    if p <= q1:  return [0, 200, 0, 160]
-    if p <= q2:  return [255, 200, 0, 160]
-    if p <= q3:  return [255, 120, 0, 160]
+    if p <= q1:
+        return [0, 200, 0, 160]
+    if p <= q2:
+        return [255, 200, 0, 160]
+    if p <= q3:
+        return [255, 120, 0, 160]
     return [220, 0, 0, 160]
 
 
@@ -35,10 +37,12 @@ layer = pdk.Layer(
     pickable=True,
 )
 view = pdk.ViewState(latitude=sub["latitude"].mean(), longitude=sub["longitude"].mean(), zoom=12)
-st.pydeck_chart(pdk.Deck(
-    layers=[layer],
-    initial_view_state=view,
-    tooltip={"text": "€{price}/night\n{room_type}\n{neighbourhood}\n({neighbourhood_group})"},
-))
+st.pydeck_chart(
+    pdk.Deck(
+        layers=[layer],
+        initial_view_state=view,
+        tooltip={"text": "€{price}/night\n{room_type}\n{neighbourhood}\n({neighbourhood_group})"},
+    )
+)
 
 st.caption("Green = cheapest quartile · Yellow = 2nd · Orange = 3rd · Red = most expensive")

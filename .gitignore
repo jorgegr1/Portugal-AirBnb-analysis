@@ -6,6 +6,7 @@ models/
 *.parquet
 *.csv
 !notebooks/**/*.csv
+!reports/benchmarks/summary.csv
 
 # Python
 __pycache__/
@@ -55,4 +56,3 @@ reports/final_report/*.pdf
 
 # Streamlit
 .streamlit/secrets.toml
-

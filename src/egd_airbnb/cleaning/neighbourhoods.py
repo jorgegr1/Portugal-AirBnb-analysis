@@ -1,4 +1,5 @@
 """Clean the neighbourhoods reference table (neighbourhood_group → neighbourhood hierarchy)."""
+
 from __future__ import annotations
 
 from pyspark.sql import DataFrame
@@ -10,8 +11,7 @@ from ..utils.io import read_parquet, write_parquet
 
 def clean_neighbourhoods(df: DataFrame) -> DataFrame:
     return (
-        df
-        .filter(F.col("neighbourhood_group").isNotNull() & F.col("neighbourhood").isNotNull())
+        df.filter(F.col("neighbourhood_group").isNotNull() & F.col("neighbourhood").isNotNull())
         .dropDuplicates(["city", "neighbourhood_group", "neighbourhood"])
         .orderBy("city", "neighbourhood_group", "neighbourhood")
     )

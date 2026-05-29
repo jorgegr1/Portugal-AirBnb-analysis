@@ -1,12 +1,13 @@
 """Apply cleaning rules to interim Parquet and emit processed Parquet."""
+
 from __future__ import annotations
 
 import argparse
 
-from egd_airbnb.cleaning import calendar       as clean_calendar
-from egd_airbnb.cleaning import listings      as clean_listings
+from egd_airbnb.cleaning import calendar as clean_calendar
+from egd_airbnb.cleaning import listings as clean_listings
 from egd_airbnb.cleaning import neighbourhoods as clean_neighbourhoods
-from egd_airbnb.cleaning import reviews       as clean_reviews
+from egd_airbnb.cleaning import reviews as clean_reviews
 from egd_airbnb.config import CITIES, ensure_dirs
 from egd_airbnb.spark_session import get_spark
 

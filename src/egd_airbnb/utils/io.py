@@ -1,4 +1,5 @@
 """Thin Parquet I/O wrappers — keep job code free of repetitive options."""
+
 from __future__ import annotations
 
 from pathlib import Path

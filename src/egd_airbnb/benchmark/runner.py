@@ -1,4 +1,5 @@
 """Time a workload across parallelism levels and persist results to CSV."""
+
 from __future__ import annotations
 
 import csv
@@ -17,7 +18,10 @@ def _time_once(workload: str, master: str, parallelism: int) -> float:
     spark = get_spark(
         f"bench-{workload}-{parallelism}",
         master=master,
-        extra_conf={"spark.default.parallelism": parallelism, "spark.sql.shuffle.partitions": max(parallelism * 8, 16)},
+        extra_conf={
+            "spark.default.parallelism": parallelism,
+            "spark.sql.shuffle.partitions": max(parallelism * 8, 16),
+        },
     )
     t0 = time.perf_counter()
     try:

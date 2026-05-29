@@ -3,10 +3,10 @@
 Not used in the default flow — raw CSVs are already present under data/raw/.
 Kept for reproducibility / future snapshots.
 """
+
 from __future__ import annotations
 
 import os
-from pathlib import Path
 
 import requests
 from tqdm import tqdm
@@ -17,9 +17,9 @@ DEFAULT_BASE = os.environ.get("INSIDE_AIRBNB_BASE_URL", "https://data.insideairb
 
 
 URL_PATHS: dict[str, str] = {
-    "porto":     "portugal/norte/porto",
-    "lisbon":    "portugal/lisbon/lisbon",
-    "madrid":    "spain/comunidad-de-madrid/madrid",
+    "porto": "portugal/norte/porto",
+    "lisbon": "portugal/lisbon/lisbon",
+    "madrid": "spain/comunidad-de-madrid/madrid",
     "barcelona": "spain/catalonia/barcelona",
 }
 
@@ -46,7 +46,7 @@ def download_city(city_key: str, snapshot: str, base: str = DEFAULT_BASE) -> Non
 
 
 def download_all(snapshot: str, cities: list[str] | None = None) -> None:
-    for c in (cities or list(CITIES)):
+    for c in cities or list(CITIES):
         download_city(c, snapshot)
 
 

@@ -7,10 +7,10 @@ Improvements over baseline:
   3. Neighbourhood target encoding (replaces 285-column OHE with one dense signal).
   4. Better GBT hyperparameters (maxIter=200, stepSize=0.05).
 """
+
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 from pyspark.ml import Pipeline, PipelineModel
 from pyspark.ml.regression import GBTRegressor, LinearRegression, RandomForestRegressor
@@ -28,16 +28,26 @@ from .features import (
 )
 
 ALGOS = {
-    "lr":  lambda: LinearRegression(featuresCol="features", labelCol="label",
-                                    regParam=0.01, elasticNetParam=0.0),  # L2 ridge
-    "rf":  lambda: RandomForestRegressor(
-        featuresCol="features", labelCol="label",
-        numTrees=100, maxDepth=8, minInstancesPerNode=10, seed=42,
+    "lr": lambda: LinearRegression(
+        featuresCol="features", labelCol="label", regParam=0.01, elasticNetParam=0.0
+    ),  # L2 ridge
+    "rf": lambda: RandomForestRegressor(
+        featuresCol="features",
+        labelCol="label",
+        numTrees=100,
+        maxDepth=8,
+        minInstancesPerNode=10,
+        seed=42,
     ),
     "gbt": lambda: GBTRegressor(
-        featuresCol="features", labelCol="label",
-        maxIter=200, maxDepth=6, stepSize=0.05,
-        minInstancesPerNode=5, subsamplingRate=0.8, seed=42,
+        featuresCol="features",
+        labelCol="label",
+        maxIter=200,
+        maxDepth=6,
+        stepSize=0.05,
+        minInstancesPerNode=5,
+        subsamplingRate=0.8,
+        seed=42,
     ),
 }
 
@@ -76,15 +86,14 @@ def train(spark: SparkSession, algo: str = "gbt", sample: float | None = None) -
         .withColumn("label", F.log1p(F.col("price")))
         .cache()
     )
-    test_df = (
-        select_and_fill(engineer_features(test_raw, train_stats))
-        .withColumn("label", F.log1p(F.col("price")))
+    test_df = select_and_fill(engineer_features(test_raw, train_stats)).withColumn(
+        "label", F.log1p(F.col("price"))
     )
 
-    train_df.count()   # materialise cache before RF starts scanning partitions
+    train_df.count()  # materialise cache before RF starts scanning partitions
 
     # 6. Fit ML Pipeline.
-    stages   = build_feature_stages() + [ALGOS[algo]()]
+    stages = build_feature_stages() + [ALGOS[algo]()]
     pipeline = Pipeline(stages=stages)
     model: PipelineModel = pipeline.fit(train_df)
 
@@ -99,7 +108,7 @@ def train(spark: SparkSession, algo: str = "gbt", sample: float | None = None) -
         "algo": algo,
         "price_cap_p99": price_cap,
         "n_train": train_raw.count(),
-        "n_test":  test_raw.count(),
+        "n_test": test_raw.count(),
         "metrics_log": metrics_log,
         "metrics_eur": metrics_eur,
     }
@@ -115,8 +124,8 @@ def train(spark: SparkSession, algo: str = "gbt", sample: float | None = None) -
     nb_pd = train_stats["nb_stats"].toPandas()
     inference_stats = {
         "global_mean_log_price": train_stats["global_mean_log_price"],
-        "global_mean_count":     train_stats["global_mean_count"],
-        "neighbourhood_stats":   nb_pd.set_index("neighbourhood").to_dict(orient="index"),
+        "global_mean_count": train_stats["global_mean_count"],
+        "neighbourhood_stats": nb_pd.set_index("neighbourhood").to_dict(orient="index"),
     }
     (MODELS_DIR / f"price_{algo}_inference_stats.json").write_text(
         json.dumps(inference_stats, indent=2)
