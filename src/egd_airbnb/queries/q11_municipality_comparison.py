@@ -16,10 +16,10 @@ from ..utils.io import read_parquet
 def run(spark: SparkSession) -> DataFrame:
     listings = read_parquet(spark, PROCESSED_DIR / "listings")
 
-    # Municipality stats from listings (neighbourhood_group_cleansed in processed listings).
+    # Municipality stats from listings (neighbourhood_group in processed listings).
     municipality = (
         listings
-        .groupBy("city", "neighbourhood_group_cleansed")
+        .groupBy("city", "neighbourhood_group")
         .agg(
             F.count("id").alias("n_listings"),
             F.countDistinct("host_id").alias("n_hosts"),
@@ -34,13 +34,13 @@ def run(spark: SparkSession) -> DataFrame:
     # Join full neighbourhood count from the reference table.
     nb = (
         read_parquet(spark, PROCESSED_DIR / "neighbourhoods")
-        .groupBy("city", F.col("neighbourhood_group").alias("neighbourhood_group_cleansed"))
+        .groupBy("city", "neighbourhood_group")
         .agg(F.countDistinct("neighbourhood").alias("n_neighbourhoods_in_municipality"))
     )
 
     return (
         municipality
-        .join(nb, ["city", "neighbourhood_group_cleansed"], "left")
+        .join(nb, ["city", "neighbourhood_group"], "left")
         .withColumn("listings_per_neighbourhood", F.col("n_listings") / F.col("n_neighbourhoods_in_municipality"))
         .orderBy("city", F.col("n_listings").desc())
     )

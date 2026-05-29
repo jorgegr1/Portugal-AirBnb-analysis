@@ -1,7 +1,7 @@
 .PHONY: help install ingest clean queries ml ml-price ml-occupancy bench bench-local dash test lint format clean-data
 
 PYTHON ?= python
-CITIES ?= porto,lisbon
+CITIES ?= porto,lisbon,madrid,barcelona
 QUERY  ?= all
 CORES  ?= 4
 

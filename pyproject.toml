@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "egd_airbnb"
 version = "0.1.0"
-description = "FEUP/MECD EGD project: Spark pipeline over Inside Airbnb data (Porto + Lisbon)."
+description = "FEUP/MECD EGD project: Spark pipeline over Inside Airbnb data (Porto, Lisbon, Madrid, Barcelona)."
 requires-python = ">=3.10"
 dependencies = [
     "pyspark==3.5.1",
