@@ -11,8 +11,8 @@ The pipeline ingests **68,521 listings**, a **25.8 M-row** daily availability
 calendar and **4.90 M reviews** from raw CSV into partitioned Parquet, runs
 eleven cross-city analytical queries, trains three MLlib models, and benchmarks
 five Spark workloads on Google Dataproc across 1/2/4 worker nodes. Results feed
-a Streamlit dashboard and the IEEE-style report under
-[`reports/final_report/`](reports/final_report/).
+a Streamlit dashboard and the IEEE-style report
+([`reports/EGD_Report.pdf`](reports/EGD_Report.pdf)).
 
 ---
 
@@ -85,7 +85,7 @@ EGD-AirBnb/
 │   ├── figures/             paper-ready PNG/PDF
 │   ├── benchmarks/          Dataproc run logs
 │   ├── results/             query Parquet + ml/*.json
-│   └── final_report/        report.tex, references.bib, report.pdf
+│   └── EGD_Report.pdf       final IEEE-style report (deliverable)
 ├── docs/                    BENCHMARK_GUIDE.md + course briefs (PDF)
 ├── tests/                   pytest cleaning sanity checks
 ├── run_benchmarks.bat       full Dataproc benchmark suite (Windows)

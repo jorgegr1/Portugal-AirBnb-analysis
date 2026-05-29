@@ -1,12 +1,13 @@
 # Data (kept locally only)
 data/raw/
-data/interim/
-data/processed/
 models/
 *.parquet
 *.csv
 !notebooks/**/*.csv
 !reports/benchmarks/summary.csv
+# Keep the small query-result parquets checked in (data part only; not .crc/_SUCCESS)
+!reports/results/*.parquet/
+!reports/results/*.parquet/part-*.parquet
 
 # Python
 __pycache__/
@@ -42,17 +43,15 @@ _SUCCESS
 .env
 .env.local
 
-# Reports — keep figures/results/.tex/.bib/.bbl checked in but exclude tex build artefacts
-reports/final_report/*.aux
-reports/final_report/*.log
-reports/final_report/*.out
-reports/final_report/*.toc
-reports/final_report/*.fls
-reports/final_report/*.fdb_latexmk
-reports/final_report/*.synctex.gz
-reports/final_report/*.blg
-reports/final_report/*.pdf
-!reports/final_report/*_final.pdf
+# LaTeX build artefacts (only the compiled report PDF is delivered)
+*.aux
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.blg
 
 # Streamlit
 .streamlit/secrets.toml
