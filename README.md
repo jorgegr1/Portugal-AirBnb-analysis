@@ -2,10 +2,10 @@
 
 End-to-end Big Data pipeline for the analytical exploration and predictive
 modelling of [Inside Airbnb](https://insideairbnb.com/get-the-data/) short-term
-rental data across four Iberian cities — **Porto, Lisbon, Madrid and
-Barcelona** — built on Apache Spark.
+rental data across four Iberian cities: **Porto, Lisbon, Madrid and
+Barcelona**. Built on Apache Spark.
 
-Course project for *Engenharia de Grandes Dados* (EGD), FEUP — MECD.
+Course project for *Engenharia de Grandes Dados* (EGD), FEUP - MECD.
 
 The pipeline ingests **68,521 listings**, a **25.8 M-row** daily availability
 calendar and **4.90 M reviews** from raw CSV into partitioned Parquet, runs
